@@ -1,0 +1,44 @@
+erDiagram
+    USERS ||--o{ FAMILY_MEMBERS : joins
+    FAMILIES ||--o{ FAMILY_MEMBERS : has
+    FAMILIES ||--o{ FAMILY_INVITATIONS : sends
+    USERS ||--o{ FAMILY_INVITATIONS : creates
+
+    FAMILIES ||--o{ PLAN_CATEGORIES : owns
+    FAMILIES ||--o{ FAMILY_PLANS : owns
+    PLAN_CATEGORIES ||--o{ FAMILY_PLANS : categorizes
+    USERS ||--o{ FAMILY_PLANS : creates
+
+    FAMILY_PLANS ||--|| WANT_NEED_DETAILS : has
+    FAMILY_PLANS ||--|| MILESTONE_DETAILS : has
+    FAMILY_PLANS ||--o{ GOAL_STEPS : contains
+    FAMILY_PLANS ||--o{ PLAN_PARTICIPANTS : includes
+    USERS ||--o{ PLAN_PARTICIPANTS : participates
+
+    FAMILY_PLANS ||--o{ PLAN_VOTES : receives
+    USERS ||--o{ PLAN_VOTES : casts
+
+    FAMILY_PLANS ||--o{ COMMENTS : has
+    USERS ||--o{ COMMENTS : writes
+    COMMENTS ||--o{ COMMENTS : replies_to
+
+    FAMILY_PLANS ||--o{ REACTIONS : receives
+    COMMENTS ||--o{ REACTIONS : receives
+    USERS ||--o{ REACTIONS : gives
+
+    FAMILIES ||--o{ MEMORIES : owns
+    FAMILY_PLANS ||--o{ MEMORIES : attaches
+    USERS ||--o{ MEMORIES : uploads
+
+    FAMILIES ||--o{ RECAPS : has
+    RECAPS ||--o{ RECAP_ITEMS : contains
+    FAMILY_PLANS ||--o{ RECAP_ITEMS : featured_in
+    MEMORIES ||--o{ RECAP_ITEMS : featured_in
+
+    FAMILIES ||--o{ NOTIFICATIONS : owns
+    USERS ||--o{ NOTIFICATIONS : receives
+    FAMILY_PLANS ||--o{ NOTIFICATIONS : relates_to
+
+    FAMILIES ||--o{ ACTIVITY_LOGS : records
+    USERS ||--o{ ACTIVITY_LOGS : performs
+    FAMILY_PLANS ||--o{ ACTIVITY_LOGS : references

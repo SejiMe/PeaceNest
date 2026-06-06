@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Workspace Initializer"
+  short_description: "Initialize a local AI operations workspace"
+  default_prompt: "Use $ai-workspace-initializer to initialize .ai-workspace for this project."

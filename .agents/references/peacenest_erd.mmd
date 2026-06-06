@@ -1,0 +1,287 @@
+erDiagram
+    USERS {
+        uuid id PK
+        uuid supabase_user_id UK
+        citext email UK
+        text display_name
+        text avatar_url
+        text timezone
+        timestamptz last_seen_at
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    FAMILIES {
+        uuid id PK
+        text name
+        text description
+        uuid created_by_user_id FK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    FAMILY_MEMBERS {
+        uuid id PK
+        uuid family_id FK
+        uuid user_id FK
+        family_member_role role
+        family_member_status status
+        text nickname
+        timestamptz joined_at
+        timestamptz removed_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    FAMILY_INVITATIONS {
+        uuid id PK
+        uuid family_id FK
+        citext invited_email
+        family_member_role invited_role
+        text token_hash UK
+        invitation_status status
+        timestamptz expires_at
+        uuid accepted_by_user_id FK
+        timestamptz accepted_at
+        uuid created_by_user_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    PLAN_CATEGORIES {
+        uuid id PK
+        uuid family_id FK
+        text name
+        text description
+        text icon
+        text color
+        int sort_order
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    FAMILY_PLANS {
+        uuid id PK
+        uuid family_id FK
+        uuid category_id FK
+        uuid created_by_user_id FK
+        plan_type plan_type
+        text title
+        text description
+        plan_status status
+        int priority_rank
+        numeric priority_score
+        int progress_percent
+        date target_date
+        timestamptz started_at
+        timestamptz completed_at
+        timestamptz archived_at
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        int version
+    }
+
+    WANT_NEED_DETAILS {
+        uuid plan_id PK, FK
+        want_need_kind kind
+        numeric estimated_cost_amount
+        char estimated_cost_currency
+        score_level urgency_level
+        score_level importance_level
+        score_level emotional_value_level
+        date desired_by_date
+        text funding_notes
+    }
+
+    MILESTONE_DETAILS {
+        uuid plan_id PK, FK
+        text milestone_type
+        text celebration_notes
+        text reflection_prompt
+        boolean include_in_recap
+    }
+
+    GOAL_STEPS {
+        uuid id PK
+        uuid plan_id FK
+        text title
+        text description
+        int sort_order
+        boolean is_completed
+        uuid completed_by_user_id FK
+        timestamptz completed_at
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    PLAN_PARTICIPANTS {
+        uuid id PK
+        uuid plan_id FK
+        uuid user_id FK
+        text role
+        timestamptz created_at
+    }
+
+    PLAN_VOTES {
+        uuid id PK
+        uuid plan_id FK
+        uuid user_id FK
+        vote_value vote_value
+        int priority_points
+        text note
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    COMMENTS {
+        uuid id PK
+        uuid plan_id FK
+        uuid author_user_id FK
+        uuid parent_comment_id FK
+        text body
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    REACTIONS {
+        uuid id PK
+        uuid user_id FK
+        uuid plan_id FK
+        uuid comment_id FK
+        text reaction_type
+        timestamptz created_at
+    }
+
+    MEMORIES {
+        uuid id PK
+        uuid family_id FK
+        uuid plan_id FK
+        uuid uploaded_by_user_id FK
+        text caption
+        text media_type
+        text storage_provider
+        text storage_path
+        text thumbnail_path
+        timestamptz taken_at
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    RECAPS {
+        uuid id PK
+        uuid family_id FK
+        recap_period_type period_type
+        date period_start
+        date period_end
+        text title
+        text summary
+        jsonb stats
+        uuid generated_by_user_id FK
+        timestamptz published_at
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+
+    RECAP_ITEMS {
+        uuid id PK
+        uuid recap_id FK
+        uuid plan_id FK
+        uuid memory_id FK
+        text item_type
+        text title
+        text description
+        int sort_order
+        timestamptz created_at
+    }
+
+    NOTIFICATIONS {
+        uuid id PK
+        uuid family_id FK
+        uuid recipient_user_id FK
+        uuid actor_user_id FK
+        notification_type type
+        text title
+        text body
+        uuid related_plan_id FK
+        uuid related_comment_id FK
+        uuid related_recap_id FK
+        timestamptz read_at
+        timestamptz created_at
+        timestamptz deleted_at
+    }
+
+    ACTIVITY_LOGS {
+        uuid id PK
+        uuid family_id FK
+        uuid actor_user_id FK
+        activity_type activity_type
+        uuid plan_id FK
+        uuid comment_id FK
+        uuid recap_id FK
+        jsonb metadata
+        timestamptz created_at
+    }
+
+    USERS ||--o{ FAMILIES : creates
+    USERS ||--o{ FAMILY_MEMBERS : joins
+    FAMILIES ||--o{ FAMILY_MEMBERS : has
+
+    FAMILIES ||--o{ FAMILY_INVITATIONS : has
+    USERS ||--o{ FAMILY_INVITATIONS : creates
+    USERS ||--o{ FAMILY_INVITATIONS : accepts
+
+    FAMILIES ||--o{ PLAN_CATEGORIES : owns
+    FAMILIES ||--o{ FAMILY_PLANS : owns
+    PLAN_CATEGORIES ||--o{ FAMILY_PLANS : categorizes
+    USERS ||--o{ FAMILY_PLANS : creates
+
+    FAMILY_PLANS ||--o| WANT_NEED_DETAILS : has
+    FAMILY_PLANS ||--o| MILESTONE_DETAILS : has
+
+    FAMILY_PLANS ||--o{ GOAL_STEPS : contains
+    USERS ||--o{ GOAL_STEPS : completes
+
+    FAMILY_PLANS ||--o{ PLAN_PARTICIPANTS : includes
+    USERS ||--o{ PLAN_PARTICIPANTS : participates
+
+    FAMILY_PLANS ||--o{ PLAN_VOTES : receives
+    USERS ||--o{ PLAN_VOTES : casts
+
+    FAMILY_PLANS ||--o{ COMMENTS : has
+    USERS ||--o{ COMMENTS : writes
+    COMMENTS ||--o{ COMMENTS : replies_to
+
+    USERS ||--o{ REACTIONS : gives
+    FAMILY_PLANS ||--o{ REACTIONS : receives
+    COMMENTS ||--o{ REACTIONS : receives
+
+    FAMILIES ||--o{ MEMORIES : owns
+    FAMILY_PLANS ||--o{ MEMORIES : attaches
+    USERS ||--o{ MEMORIES : uploads
+
+    FAMILIES ||--o{ RECAPS : has
+    USERS ||--o{ RECAPS : generates
+    RECAPS ||--o{ RECAP_ITEMS : contains
+    FAMILY_PLANS ||--o{ RECAP_ITEMS : featured_in
+    MEMORIES ||--o{ RECAP_ITEMS : featured_in
+
+    FAMILIES ||--o{ NOTIFICATIONS : owns
+    USERS ||--o{ NOTIFICATIONS : receives
+    USERS ||--o{ NOTIFICATIONS : triggers
+    FAMILY_PLANS ||--o{ NOTIFICATIONS : relates_to
+    COMMENTS ||--o{ NOTIFICATIONS : relates_to
+    RECAPS ||--o{ NOTIFICATIONS : relates_to
+
+    FAMILIES ||--o{ ACTIVITY_LOGS : records
+    USERS ||--o{ ACTIVITY_LOGS : performs
+    FAMILY_PLANS ||--o{ ACTIVITY_LOGS : references
+    COMMENTS ||--o{ ACTIVITY_LOGS : references
+    RECAPS ||--o{ ACTIVITY_LOGS : references
