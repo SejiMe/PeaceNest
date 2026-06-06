@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PeaceNest.Api/PeaceNest.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PeaceNest.Api.Tests.Integration/PeaceNest.Api.Tests.Integration.csproj" />
+    <Project Path="tests/PeaceNest.Api.Tests.Unit/PeaceNest.Api.Tests.Unit.csproj" />
+  </Folder>
+</Solution>

@@ -1,1 +1,8 @@
 .ai-workspace/
+
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
