@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using PeaceNest.Api.Common.Auth;
+using PeaceNest.Api.Common.Database;
 using PeaceNest.Api.Common.Errors;
 using PeaceNest.Api.Common.RateLimiting;
 using Scalar.AspNetCore;
@@ -9,7 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddPeaceNestAuthentication(builder.Configuration, builder.Environment);
+builder.Services.AddPeaceNestDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddPeaceNestRateLimiting(builder.Configuration);
 builder.Services
     .AddFastEndpoints()
