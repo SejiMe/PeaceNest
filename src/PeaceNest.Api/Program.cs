@@ -1,9 +1,16 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using PeaceNest.Api.Common.Auth;
+using PeaceNest.Api.Common.Errors;
+using PeaceNest.Api.Common.RateLimiting;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+builder.Services.AddPeaceNestAuthentication(builder.Configuration, builder.Environment);
+builder.Services.AddPeaceNestRateLimiting(builder.Configuration);
 builder.Services
     .AddFastEndpoints()
     .SwaggerDocument(options =>
@@ -21,11 +28,42 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+if (app.Environment.IsEnvironment("Testing"))
+{
+    app.MapGet("/testing/errors/{kind}", (string kind) =>
+    {
+        throw kind.ToLowerInvariant() switch
+        {
+            "validation" => new ValidationAppException(
+                "Validation failed.",
+                [new("name", "Name is required.")]),
+            "authentication" => new AuthenticationAppException("Authentication is required."),
+            "authorization" => new AuthorizationAppException("You are not allowed to access this family space."),
+            "not-found" => new NotFoundAppException("Family plan was not found."),
+            "conflict" => new ConflictAppException("Family plan was updated by someone else."),
+            "domain" => new DomainRuleAppException("This family plan cannot be completed yet."),
+            "external-provider" => new ExternalProviderAppException("Supabase is unavailable."),
+            _ => new InvalidOperationException("Unexpected diagnostic failure.")
+        };
+    }).ExcludeFromDescription();
+
+    app.MapGet("/testing/rate-limit", () => Results.Ok(new { status = "ok" }))
+        .RequireRateLimiting(RateLimitPolicyNames.TestingTight)
+        .ExcludeFromDescription();
+}
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+
 if (app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
 }
 
+app.UseRouting();
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseFastEndpoints();
 
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())

@@ -1,21 +1,17 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using PeaceNest.Api.Features.System.GetHealth;
+using PeaceNest.Api.Tests.Integration.Support;
 
 namespace PeaceNest.Api.Tests.Integration.Features.System.GetHealth;
 
-public sealed class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class HealthEndpointTests : IClassFixture<TestingApiFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestingApiFactory _factory;
 
-    public HealthEndpointTests(WebApplicationFactory<Program> factory)
+    public HealthEndpointTests(TestingApiFactory factory)
     {
-        _factory = factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseEnvironment("Testing");
-        });
+        _factory = factory;
     }
 
     [Fact]
