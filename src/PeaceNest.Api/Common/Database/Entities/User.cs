@@ -29,4 +29,26 @@ public sealed class User : IAuditableEntity, ISoftDeletableEntity
     public ICollection<FamilyInvitation> CreatedInvitations { get; } = new List<FamilyInvitation>();
 
     public ICollection<FamilyInvitation> AcceptedInvitations { get; } = new List<FamilyInvitation>();
+
+    public ICollection<FamilyPlan> CreatedPlans { get; } = new List<FamilyPlan>();
+
+    public ICollection<GoalStep> CompletedGoalSteps { get; } = new List<GoalStep>();
+
+    public ICollection<PlanParticipant> PlanParticipations { get; } = new List<PlanParticipant>();
+
+    public ICollection<PlanVote> PlanVotes { get; } = new List<PlanVote>();
+
+    public ICollection<Comment> Comments { get; } = new List<Comment>();
+
+    public ICollection<Reaction> Reactions { get; } = new List<Reaction>();
+
+    public ICollection<Memory> UploadedMemories { get; } = new List<Memory>();
+
+    public ICollection<Recap> GeneratedRecaps { get; } = new List<Recap>();
+
+    public ICollection<Notification> ReceivedNotifications { get; } = new List<Notification>();
+
+    public ICollection<Notification> TriggeredNotifications { get; } = new List<Notification>();
+
+    public ICollection<ActivityLog> ActivityLogs { get; } = new List<ActivityLog>();
 }

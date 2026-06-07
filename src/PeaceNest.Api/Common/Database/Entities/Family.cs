@@ -21,4 +21,16 @@ public sealed class Family : IAuditableEntity, ISoftDeletableEntity
     public ICollection<FamilyMember> Members { get; } = new List<FamilyMember>();
 
     public ICollection<FamilyInvitation> Invitations { get; } = new List<FamilyInvitation>();
+
+    public ICollection<PlanCategory> PlanCategories { get; } = new List<PlanCategory>();
+
+    public ICollection<FamilyPlan> Plans { get; } = new List<FamilyPlan>();
+
+    public ICollection<Memory> Memories { get; } = new List<Memory>();
+
+    public ICollection<Recap> Recaps { get; } = new List<Recap>();
+
+    public ICollection<Notification> Notifications { get; } = new List<Notification>();
+
+    public ICollection<ActivityLog> ActivityLogs { get; } = new List<ActivityLog>();
 }

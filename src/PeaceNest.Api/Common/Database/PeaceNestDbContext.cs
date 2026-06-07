@@ -24,6 +24,34 @@ public sealed class PeaceNestDbContext : DbContext
 
     public DbSet<FamilyInvitation> FamilyInvitations => Set<FamilyInvitation>();
 
+    public DbSet<PlanCategory> PlanCategories => Set<PlanCategory>();
+
+    public DbSet<FamilyPlan> FamilyPlans => Set<FamilyPlan>();
+
+    public DbSet<WantNeedDetails> WantNeedDetails => Set<WantNeedDetails>();
+
+    public DbSet<MilestoneDetails> MilestoneDetails => Set<MilestoneDetails>();
+
+    public DbSet<GoalStep> GoalSteps => Set<GoalStep>();
+
+    public DbSet<PlanParticipant> PlanParticipants => Set<PlanParticipant>();
+
+    public DbSet<PlanVote> PlanVotes => Set<PlanVote>();
+
+    public DbSet<Comment> Comments => Set<Comment>();
+
+    public DbSet<Reaction> Reactions => Set<Reaction>();
+
+    public DbSet<Memory> Memories => Set<Memory>();
+
+    public DbSet<Recap> Recaps => Set<Recap>();
+
+    public DbSet<RecapItem> RecapItems => Set<RecapItem>();
+
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("citext");

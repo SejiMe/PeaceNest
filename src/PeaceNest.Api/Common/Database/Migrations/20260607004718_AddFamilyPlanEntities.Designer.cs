@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PeaceNest.Api.Common.Database;
@@ -13,9 +14,11 @@ using PeaceNest.Api.Common.Database.Entities;
 namespace PeaceNest.Api.Common.Database.Migrations
 {
     [DbContext(typeof(PeaceNestDbContext))]
-    partial class PeaceNestDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260607004718_AddFamilyPlanEntities")]
+    partial class AddFamilyPlanEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
