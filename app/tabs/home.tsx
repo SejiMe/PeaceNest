@@ -6,6 +6,7 @@ import { Screen } from '@/components/ui/screen';
 import { ErrorState, LoadingState } from '@/components/ui/state';
 import { Text } from '@/components/ui/text';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { roleLabel } from '@/lib/api/contracts';
 import { useAuth } from '@/lib/auth/auth-provider';
 
 export default function HomeRoute() {
@@ -43,7 +44,7 @@ export default function HomeRoute() {
             currentUser.data.familyMemberships.map((membership) => (
               <View key={membership.familyId} className="rounded-lg bg-peacenest-blush p-3">
                 <Text className="font-semibold">{membership.familyName}</Text>
-                <Text variant="caption">{membership.role}</Text>
+                <Text variant="caption">{roleLabel(membership.role)}</Text>
               </View>
             ))
           ) : (
@@ -54,6 +55,13 @@ export default function HomeRoute() {
             </View>
           )}
         </Card>
+      ) : null}
+
+      {currentUser.data?.familyMemberships.length ? (
+        <View className="gap-3">
+          <Button label="Open Wants & Needs" onPress={() => router.push('/tabs/wants-needs')} />
+          <Button label="Invite family" onPress={() => router.push('/family/invite')} variant="secondary" />
+        </View>
       ) : null}
 
       <Button label="Sign out" onPress={signOut} variant="ghost" />

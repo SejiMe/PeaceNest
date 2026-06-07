@@ -64,7 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (data.url) {
-      await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+
+      if (result.type === 'success') {
+        await createSessionFromCallbackUrl(result.url);
+      }
+
       const { data: refreshedSession } = await supabase.auth.getSession();
       setSession(refreshedSession.session);
     }
@@ -109,4 +114,29 @@ export function useAuth() {
   }
 
   return context;
+}
+
+async function createSessionFromCallbackUrl(url: string) {
+  const params = getCallbackParams(url);
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+
+  if (!accessToken || !refreshToken) {
+    return;
+  }
+
+  const { error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+function getCallbackParams(url: string) {
+  const [, fragment = ''] = url.split('#');
+  const query = url.includes('?') ? url.slice(url.indexOf('?') + 1).split('#')[0] : '';
+  return new URLSearchParams(fragment || query);
 }
