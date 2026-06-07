@@ -1,0 +1,281 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using PeaceNest.Api.Common.Database;
+using PeaceNest.Api.Common.Database.Entities;
+using PeaceNest.Api.Common.Errors;
+using PeaceNest.Api.Tests.Integration.Support;
+using CreateFamilyRequest = PeaceNest.Api.Features.Families.CreateFamily.Request;
+using CreateFamilyResponse = PeaceNest.Api.Features.Families.CreateFamily.Response;
+using CreateMilestoneRequest = PeaceNest.Api.Features.FamilyMilestones.CreateMilestone.Request;
+using CreateMilestoneResponse = PeaceNest.Api.Features.FamilyMilestones.CreateMilestone.Response;
+using CreateMilestoneStepRequest = PeaceNest.Api.Features.FamilyMilestones.CreateMilestone.CreateMilestoneStepRequest;
+using GetMilestoneResponse = PeaceNest.Api.Features.FamilyMilestones.GetMilestone.Response;
+using ListMilestonesResponse = PeaceNest.Api.Features.FamilyMilestones.ListMilestones.Response;
+
+namespace PeaceNest.Api.Tests.Integration.Features.FamilyMilestones;
+
+public sealed class FamilyMilestonesEndpointTests
+{
+    [Fact]
+    public async Task CreateMilestone_WritesFamilyPlanMilestoneDetailsAndGoalSteps()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa",
+            "parent@example.test");
+        var family = await CreateFamilyAsync(client, "Milestone Nest");
+        var request = NewCreateRequest(
+            "Sunday family dinner",
+            [
+                new("Choose recipe", "Pick one meal together.", 2),
+                new("Set table", null, 1)
+            ]);
+
+        using var response = await client.PostAsJsonAsync($"/families/{family.Id}/milestones", request);
+        var payload = await response.Content.ReadFromJsonAsync<CreateMilestoneResponse>();
+
+        Assert.True(
+            response.StatusCode == HttpStatusCode.Created,
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(payload);
+        Assert.Equal(family.Id, payload.Milestone.FamilyId);
+        Assert.Equal("Sunday family dinner", payload.Milestone.Title);
+        Assert.Equal(PlanStatus.Active, payload.Milestone.Status);
+        Assert.Equal("habit", payload.Milestone.MilestoneType);
+        Assert.True(payload.Milestone.IncludeInRecap);
+        Assert.Equal(["Set table", "Choose recipe"], payload.Milestone.Steps.Select(step => step.Title));
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PeaceNestDbContext>();
+        var plan = await dbContext.FamilyPlans
+            .Include(item => item.MilestoneDetails)
+            .Include(item => item.GoalSteps)
+            .SingleAsync();
+
+        Assert.Equal(payload.Milestone.Id, plan.Id);
+        Assert.Equal(PlanType.Milestone, plan.PlanType);
+        Assert.NotNull(plan.MilestoneDetails);
+        Assert.Equal(2, plan.GoalSteps.Count);
+        Assert.All(plan.GoalSteps, step => Assert.False(step.IsCompleted));
+    }
+
+    [Fact]
+    public async Task ListMilestones_ReturnsOnlyFamilyScopedMilestonePlans()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var firstClient = CreateAuthenticatedClient(
+            factory,
+            "bbbbbbbb-1111-1111-1111-bbbbbbbbbbbb",
+            "first@example.test");
+        using var secondClient = CreateAuthenticatedClient(
+            factory,
+            "bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb",
+            "second@example.test");
+        var firstFamily = await CreateFamilyAsync(firstClient, "First Nest");
+        var secondFamily = await CreateFamilyAsync(secondClient, "Second Nest");
+        await CreateMilestoneAsync(firstClient, firstFamily.Id, NewCreateRequest("Family reunion"));
+        await CreateMilestoneAsync(secondClient, secondFamily.Id, NewCreateRequest("Private reflection"));
+
+        using var response = await firstClient.GetAsync($"/families/{firstFamily.Id}/milestones");
+        var payload = await response.Content.ReadFromJsonAsync<ListMilestonesResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        var milestone = Assert.Single(payload.Milestones);
+        Assert.Equal("Family reunion", milestone.Title);
+        Assert.Equal(firstFamily.Id, milestone.FamilyId);
+    }
+
+    [Fact]
+    public async Task GetMilestone_ReturnsCreatedMilestoneWithChecklistSteps()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "cccccccc-1111-1111-1111-cccccccccccc",
+            "parent@example.test");
+        var family = await CreateFamilyAsync(client, "Detail Nest");
+        var created = await CreateMilestoneAsync(
+            client,
+            family.Id,
+            NewCreateRequest("Visit grandparents", [new("Plan weekend", null, null)]));
+
+        using var response = await client.GetAsync($"/families/{family.Id}/milestones/{created.Milestone.Id}");
+        var payload = await response.Content.ReadFromJsonAsync<GetMilestoneResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(created.Milestone.Id, payload.Milestone.Id);
+        Assert.Equal("Visit grandparents", payload.Milestone.Title);
+        var step = Assert.Single(payload.Milestone.Steps);
+        Assert.Equal("Plan weekend", step.Title);
+        Assert.Null(step.CompletedByUserId);
+    }
+
+    [Fact]
+    public async Task CreateMilestone_RejectsInvalidProgress()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "dddddddd-1111-1111-1111-dddddddddddd",
+            "parent@example.test");
+        var family = await CreateFamilyAsync(client, "Validation Nest");
+
+        using var response = await client.PostAsJsonAsync(
+            $"/families/{family.Id}/milestones",
+            NewCreateRequest("Too far", progressPercent: 101));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        await ProblemDetailsAssert.HasProblemDetailsAsync(
+            response,
+            400,
+            ErrorCodes.ValidationFailed);
+    }
+
+    [Fact]
+    public async Task CreateMilestone_RejectsViewerRole()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var ownerClient = CreateAuthenticatedClient(
+            factory,
+            "eeeeeeee-1111-1111-1111-eeeeeeeeeeee",
+            "owner@example.test");
+        var family = await CreateFamilyAsync(ownerClient, "Permission Nest");
+        var viewerUser = await AddMemberAsync(
+            factory,
+            family.Id,
+            "eeeeeeee-2222-2222-2222-eeeeeeeeeeee",
+            "viewer@example.test",
+            FamilyMemberRole.Viewer);
+        using var viewerClient = CreateAuthenticatedClient(
+            factory,
+            viewerUser.SupabaseUserId.ToString(),
+            viewerUser.Email);
+
+        using var response = await viewerClient.PostAsJsonAsync(
+            $"/families/{family.Id}/milestones",
+            NewCreateRequest("Viewer milestone"));
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        await ProblemDetailsAssert.HasProblemDetailsAsync(
+            response,
+            403,
+            ErrorCodes.AuthorizationDenied);
+    }
+
+    [Fact]
+    public async Task ListMilestones_RejectsOutsider()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var ownerClient = CreateAuthenticatedClient(
+            factory,
+            "ffffffff-1111-1111-1111-ffffffffffff",
+            "owner@example.test");
+        using var outsiderClient = CreateAuthenticatedClient(
+            factory,
+            "ffffffff-2222-2222-2222-ffffffffffff",
+            "outsider@example.test");
+        var family = await CreateFamilyAsync(ownerClient, "Private Nest");
+
+        using var response = await outsiderClient.GetAsync($"/families/{family.Id}/milestones");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        await ProblemDetailsAssert.HasProblemDetailsAsync(
+            response,
+            403,
+            ErrorCodes.AuthorizationDenied);
+    }
+
+    private static CreateMilestoneRequest NewCreateRequest(
+        string title,
+        IReadOnlyCollection<CreateMilestoneStepRequest>? steps = null,
+        int progressPercent = 0) =>
+        new(
+            title,
+            "A meaningful family milestone.",
+            PriorityRank: null,
+            progressPercent,
+            TargetDate: null,
+            MilestoneType: "habit",
+            CelebrationNotes: "Celebrate gently together.",
+            ReflectionPrompt: "What made this feel meaningful?",
+            IncludeInRecap: true,
+            steps ?? []);
+
+    private static async Task<CreateFamilyResponse> CreateFamilyAsync(HttpClient client, string name)
+    {
+        using var response = await client.PostAsJsonAsync("/families", new CreateFamilyRequest(name, null));
+        var payload = await response.Content.ReadFromJsonAsync<CreateFamilyResponse>();
+
+        Assert.True(
+            response.StatusCode == HttpStatusCode.Created,
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(payload);
+        return payload;
+    }
+
+    private static async Task<CreateMilestoneResponse> CreateMilestoneAsync(
+        HttpClient client,
+        Guid familyId,
+        CreateMilestoneRequest request)
+    {
+        using var response = await client.PostAsJsonAsync($"/families/{familyId}/milestones", request);
+        var payload = await response.Content.ReadFromJsonAsync<CreateMilestoneResponse>();
+
+        Assert.True(
+            response.StatusCode == HttpStatusCode.Created,
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(payload);
+        return payload;
+    }
+
+    private static async Task<User> AddMemberAsync(
+        TestingApiFactory factory,
+        Guid familyId,
+        string supabaseUserId,
+        string email,
+        FamilyMemberRole role)
+    {
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PeaceNestDbContext>();
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            SupabaseUserId = Guid.Parse(supabaseUserId),
+            Email = email,
+            DisplayName = email.Split('@')[0]
+        };
+
+        dbContext.Users.Add(user);
+        dbContext.FamilyMembers.Add(new FamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = familyId,
+            UserId = user.Id,
+            Role = role,
+            Status = FamilyMemberStatus.Active,
+            JoinedAt = DateTimeOffset.UtcNow
+        });
+        await dbContext.SaveChangesAsync();
+
+        return user;
+    }
+
+    private static HttpClient CreateAuthenticatedClient(
+        TestingApiFactory factory,
+        string subject,
+        string email)
+    {
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            TestJwtTokenFactory.CreateSupabaseAccessToken(subject: subject, email: email));
+
+        return client;
+    }
+}
