@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using PeaceNest.Api.Common.Database.Entities;
 
 namespace PeaceNest.Api.Common.Database;
 
@@ -29,10 +31,7 @@ public static class PeaceNestDatabaseExtensions
                 connectionString = "Host=localhost;Port=5432;Database=peacenest_dev;Username=postgres;Password=postgres";
             }
 
-            options.UseNpgsql(connectionString, npgsqlOptions =>
-            {
-                npgsqlOptions.MigrationsAssembly(typeof(PeaceNestDbContext).Assembly.FullName);
-            });
+            options.UseNpgsql(connectionString, ConfigurePeaceNestNpgsqlOptions);
 
             var databaseOptions = configuration
                 .GetSection(DatabaseOptions.SectionName)
@@ -45,5 +44,13 @@ public static class PeaceNestDatabaseExtensions
         });
 
         return services;
+    }
+
+    public static void ConfigurePeaceNestNpgsqlOptions(NpgsqlDbContextOptionsBuilder npgsqlOptions)
+    {
+        npgsqlOptions.MigrationsAssembly(typeof(PeaceNestDbContext).Assembly.FullName);
+        npgsqlOptions.MapEnum<FamilyMemberRole>("family_member_role");
+        npgsqlOptions.MapEnum<FamilyMemberStatus>("family_member_status");
+        npgsqlOptions.MapEnum<FamilyInvitationStatus>("family_invitation_status");
     }
 }

@@ -13,10 +13,7 @@ public sealed class PeaceNestDbContextDesignTimeFactory : IDesignTimeDbContextFa
             ?? "Host=localhost;Port=5432;Database=peacenest_dev;Username=postgres;Password=postgres";
 
         var options = new DbContextOptionsBuilder<PeaceNestDbContext>()
-            .UseNpgsql(connectionString, npgsqlOptions =>
-            {
-                npgsqlOptions.MigrationsAssembly(typeof(PeaceNestDbContext).Assembly.FullName);
-            })
+            .UseNpgsql(connectionString, PeaceNestDatabaseExtensions.ConfigurePeaceNestNpgsqlOptions)
             .Options;
 
         return new PeaceNestDbContext(options, TimeProvider.System);

@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using PeaceNest.Api.Common.Database.Entities;
+using System.Reflection;
 
 namespace PeaceNest.Api.Common.Database;
 
@@ -14,8 +16,18 @@ public sealed class PeaceNestDbContext : DbContext
         _timeProvider = timeProvider;
     }
 
+    public DbSet<User> Users => Set<User>();
+
+    public DbSet<Family> Families => Set<Family>();
+
+    public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
+
+    public DbSet<FamilyInvitation> FamilyInvitations => Set<FamilyInvitation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("citext");
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         modelBuilder.ApplyPeaceNestConventions();
     }
 
