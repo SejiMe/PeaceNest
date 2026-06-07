@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "PeaceNest",
+    "slug": "peacenest",
+    "scheme": "peacenest",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "root": "app"
+        }
+      ],
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "android": {
+      "package": "com.peacenest.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.peacenest.app"
+    }
+  }
+}

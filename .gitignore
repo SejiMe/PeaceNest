@@ -1,4 +1,7 @@
 .ai-workspace/
+node_modules/
+.expo/
+.expo-shared/
 
 # Local secrets and machine-specific backend configuration
 .env

@@ -1,0 +1,15 @@
+export const peaceNestColors = {
+  background: '#FFF9F5',
+  surface: '#FFFFFF',
+  softRose: '#F6C7C8',
+  roseAccent: '#D97C83',
+  blushLight: '#FBE7E5',
+  warmGold: '#D6A84F',
+  goldLight: '#FFF1C7',
+  sage: '#A8BFA3',
+  clay: '#B8755A',
+  charcoal: '#2F2A28',
+  mutedText: '#8A7D78',
+  border: '#EFE2DC',
+  danger: '#D96B6B',
+} as const;
