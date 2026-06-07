@@ -12,6 +12,7 @@ src/PeaceNest.Api/appsettings.Local.json
 
 bin/
 obj/
+artifacts/
 *.user
 *.suo
 *.userosscache
