@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PeaceNest.Api.Common.Database;
 using PeaceNest.Api.Common.Database.Entities;
 
 namespace PeaceNest.Api.Common.Database.Configurations;
@@ -19,7 +20,11 @@ public sealed class ActivityLogConfiguration : IEntityTypeConfiguration<Activity
         builder.Property(activity => activity.PlanId).HasColumnName("plan_id");
         builder.Property(activity => activity.CommentId).HasColumnName("comment_id");
         builder.Property(activity => activity.RecapId).HasColumnName("recap_id");
-        builder.Property(activity => activity.Metadata).HasColumnName("metadata").HasColumnType("jsonb");
+        builder.Property(activity => activity.Metadata)
+            .HasColumnName("metadata")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonDocumentMapping.Converter)
+            .Metadata.SetValueComparer(JsonDocumentMapping.Comparer);
         builder.Property(activity => activity.CreatedAt).HasColumnName("created_at");
 
         builder.HasOne(activity => activity.Family)

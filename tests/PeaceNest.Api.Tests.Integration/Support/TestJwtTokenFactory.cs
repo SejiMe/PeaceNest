@@ -10,7 +10,8 @@ public static class TestJwtTokenFactory
     public static string CreateSupabaseAccessToken(
         string subject = "123e4567-e89b-12d3-a456-426614174000",
         string email = "parent@example.test",
-        string role = "authenticated")
+        string role = "authenticated",
+        string provider = "google")
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestingApiFactory.SigningKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -26,6 +27,7 @@ public static class TestJwtTokenFactory
                     new Claim("sub", subject),
                     new Claim("email", email),
                     new Claim("role", role),
+                    new Claim("app_metadata", $$"""{"provider":"{{provider}}","providers":["{{provider}}"]}""", JsonClaimValueTypes.Json),
                     new Claim("session_id", Guid.NewGuid().ToString())
                 ])
         };

@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddPeaceNestAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddPeaceNestDatabase(builder.Configuration, builder.Environment);
 builder.Services.AddPeaceNestRateLimiting(builder.Configuration);

@@ -2,11 +2,14 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PeaceNest.Api.Common.Database;
 
 namespace PeaceNest.Api.Tests.Integration.Support;
 
@@ -30,6 +33,13 @@ public sealed class TestingApiFactory : WebApplicationFactory<Program>
 
     public static TestingApiFactory WithConfiguration(IReadOnlyDictionary<string, string?> configuration) =>
         new(configuration);
+
+    public static TestingApiFactory WithIsolatedDatabase() =>
+        new(new Dictionary<string, string?>
+        {
+            ["Testing:UseInMemoryDatabase"] = "true",
+            ["Testing:DatabaseName"] = $"peacenest-tests-{Guid.NewGuid():N}"
+        });
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -55,6 +65,26 @@ public sealed class TestingApiFactory : WebApplicationFactory<Program>
         });
         builder.ConfigureServices(services =>
         {
+            if (_configuration.TryGetValue("Testing:UseInMemoryDatabase", out var useInMemoryDatabase) &&
+                string.Equals(useInMemoryDatabase, "true", StringComparison.OrdinalIgnoreCase))
+            {
+                var databaseName = _configuration.TryGetValue("Testing:DatabaseName", out var configuredName)
+                    ? configuredName
+                    : $"peacenest-tests-{Guid.NewGuid():N}";
+
+                services.RemoveAll<DbContextOptions<PeaceNestDbContext>>();
+                var inMemoryProvider = new ServiceCollection()
+                    .AddEntityFrameworkInMemoryDatabase()
+                    .BuildServiceProvider();
+
+                services.AddDbContext<PeaceNestDbContext>(options =>
+                {
+                    options
+                        .UseInMemoryDatabase(databaseName!)
+                        .UseInternalServiceProvider(inMemoryProvider);
+                });
+            }
+
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters

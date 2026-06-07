@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PeaceNest.Api.Common.Database;
 using PeaceNest.Api.Common.Database.Entities;
 
 namespace PeaceNest.Api.Common.Database.Configurations;
@@ -19,7 +20,11 @@ public sealed class RecapConfiguration : IEntityTypeConfiguration<Recap>
         builder.Property(recap => recap.PeriodEnd).HasColumnName("period_end").HasColumnType("date");
         builder.Property(recap => recap.Title).HasColumnName("title").HasMaxLength(180);
         builder.Property(recap => recap.Summary).HasColumnName("summary").HasMaxLength(4000);
-        builder.Property(recap => recap.Stats).HasColumnName("stats").HasColumnType("jsonb");
+        builder.Property(recap => recap.Stats)
+            .HasColumnName("stats")
+            .HasColumnType("jsonb")
+            .HasConversion(JsonDocumentMapping.Converter)
+            .Metadata.SetValueComparer(JsonDocumentMapping.Comparer);
         builder.Property(recap => recap.GeneratedByUserId).HasColumnName("generated_by_user_id");
         builder.Property(recap => recap.PublishedAt).HasColumnName("published_at");
         builder.Property(recap => recap.CreatedAt).HasColumnName("created_at");
