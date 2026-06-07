@@ -125,6 +125,63 @@ export type CreateWantOrNeedResponse = {
   wantOrNeed: WantOrNeedResponse;
 };
 
+export type MilestoneStepResponse = {
+  id: string;
+  title: string;
+  description?: string | null;
+  sortOrder: number;
+  isCompleted: boolean;
+  completedByUserId?: string | null;
+  completedAt?: string | null;
+};
+
+export type MilestoneResponse = {
+  id: string;
+  familyId: string;
+  createdByUserId: string;
+  title: string;
+  description?: string | null;
+  status: PlanStatus;
+  priorityRank?: number | null;
+  priorityScore: number;
+  progressPercent: number;
+  targetDate?: string | null;
+  milestoneType?: string | null;
+  celebrationNotes?: string | null;
+  reflectionPrompt?: string | null;
+  includeInRecap: boolean;
+  steps: MilestoneStepResponse[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ListMilestonesResponse = {
+  milestones: MilestoneResponse[];
+};
+
+export type CreateMilestoneStepRequest = {
+  title: string;
+  description?: string | null;
+  sortOrder?: number | null;
+};
+
+export type CreateMilestoneRequest = {
+  title: string;
+  description?: string | null;
+  priorityRank?: number | null;
+  progressPercent: number;
+  targetDate?: string | null;
+  milestoneType?: string | null;
+  celebrationNotes?: string | null;
+  reflectionPrompt?: string | null;
+  includeInRecap: boolean;
+  steps: CreateMilestoneStepRequest[];
+};
+
+export type CreateMilestoneResponse = {
+  milestone: MilestoneResponse;
+};
+
 export function roleLabel(role: FamilyMemberRole) {
   switch (role) {
     case FamilyMemberRole.Owner:
@@ -140,6 +197,24 @@ export function roleLabel(role: FamilyMemberRole) {
     default:
       return 'Family member';
   }
+}
+
+export function milestoneProgress(milestone: MilestoneResponse) {
+  if (milestone.steps.length === 0) {
+    return {
+      completed: 0,
+      total: 0,
+      percent: milestone.progressPercent,
+    };
+  }
+
+  const completed = milestone.steps.filter((step) => step.isCompleted).length;
+
+  return {
+    completed,
+    total: milestone.steps.length,
+    percent: Math.round((completed / milestone.steps.length) * 100),
+  };
 }
 
 export function kindLabel(kind: WantNeedKind) {

@@ -1,0 +1,32 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiFetch } from '@/lib/api/client';
+import type {
+  CreateMilestoneRequest,
+  CreateMilestoneResponse,
+  ListMilestonesResponse,
+} from '@/lib/api/contracts';
+import { queryKeys } from '@/lib/api/query-keys';
+
+export function useMilestones(familyId: string | null | undefined) {
+  return useQuery({
+    queryKey: familyId ? queryKeys.milestones(familyId) : ['families', 'none', 'milestones'],
+    queryFn: () => apiFetch<ListMilestonesResponse>(`/families/${familyId}/milestones`),
+    enabled: Boolean(familyId),
+    staleTime: 30_000,
+  });
+}
+
+export function useCreateMilestone(familyId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: CreateMilestoneRequest) =>
+      apiFetch<CreateMilestoneResponse>(`/families/${familyId}/milestones`, {
+        method: 'POST',
+        body: request,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.milestones(familyId) });
+    },
+  });
+}
