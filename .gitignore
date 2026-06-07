@@ -1,5 +1,15 @@
 .ai-workspace/
 
+# Local secrets and machine-specific backend configuration
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+src/PeaceNest.Api/appsettings.Development.json
+src/PeaceNest.Api/appsettings.Local.json
+
 bin/
 obj/
 *.user
