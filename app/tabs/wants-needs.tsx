@@ -120,34 +120,39 @@ export default function WantsNeedsRoute() {
 
 function WantNeedCard({ item }: { item: WantOrNeedResponse }) {
   return (
-    <Card className="gap-3">
-      <View className="flex-row items-start justify-between gap-3">
-        <View className="flex-1 gap-1">
-          <Text className="text-lg font-semibold">{item.title}</Text>
-          {item.description ? <Text variant="caption">{item.description}</Text> : null}
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push({ pathname: '/wants-needs/[id]', params: { id: item.id } })}
+    >
+      <Card className="gap-3">
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="flex-1 gap-1">
+            <Text className="text-lg font-semibold">{item.title}</Text>
+            {item.description ? <Text variant="caption">{item.description}</Text> : null}
+          </View>
+          <Badge label={kindLabel(item.kind)} tone={item.kind === WantNeedKind.Need ? 'need' : 'want'} />
         </View>
-        <Badge label={kindLabel(item.kind)} tone={item.kind === WantNeedKind.Need ? 'need' : 'want'} />
-      </View>
 
-      <View className="flex-row flex-wrap gap-2">
-        <Badge label={scoreLabel(item.urgencyLevel)} tone={item.urgencyLevel === 2 ? 'gold' : 'muted'} />
-        {item.estimatedCostAmount ? (
-          <Badge
-            label={`${item.estimatedCostCurrency ?? 'USD'} ${Number(item.estimatedCostAmount).toLocaleString()}`}
-            tone="muted"
-          />
-        ) : null}
-      </View>
+        <View className="flex-row flex-wrap gap-2">
+          <Badge label={scoreLabel(item.urgencyLevel)} tone={item.urgencyLevel === 2 ? 'gold' : 'muted'} />
+          {item.estimatedCostAmount ? (
+            <Badge
+              label={`${item.estimatedCostCurrency ?? 'USD'} ${Number(item.estimatedCostAmount).toLocaleString()}`}
+              tone="muted"
+            />
+          ) : null}
+        </View>
 
-      <View className="gap-2">
-        <View className="flex-row justify-between">
-          <Text variant="caption">Progress</Text>
-          <Text variant="caption">{item.progressPercent}%</Text>
+        <View className="gap-2">
+          <View className="flex-row justify-between">
+            <Text variant="caption">Progress</Text>
+            <Text variant="caption">{item.progressPercent}%</Text>
+          </View>
+          <View className="h-2 overflow-hidden rounded-lg bg-peacenest-blush">
+            <View className="h-full bg-peacenest-sage" style={{ width: `${item.progressPercent}%` }} />
+          </View>
         </View>
-        <View className="h-2 overflow-hidden rounded-lg bg-peacenest-blush">
-          <View className="h-full bg-peacenest-sage" style={{ width: `${item.progressPercent}%` }} />
-        </View>
-      </View>
-    </Card>
+      </Card>
+    </Pressable>
   );
 }

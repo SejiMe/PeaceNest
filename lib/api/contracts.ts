@@ -125,6 +125,10 @@ export type CreateWantOrNeedResponse = {
   wantOrNeed: WantOrNeedResponse;
 };
 
+export type GetWantOrNeedResponse = {
+  wantOrNeed: WantOrNeedResponse;
+};
+
 export type MilestoneStepResponse = {
   id: string;
   title: string;
@@ -180,6 +184,32 @@ export type CreateMilestoneRequest = {
 
 export type CreateMilestoneResponse = {
   milestone: MilestoneResponse;
+};
+
+export type GetMilestoneResponse = {
+  milestone: MilestoneResponse;
+};
+
+export type PlanNoteResponse = {
+  id: string;
+  planId: string;
+  authorUserId: string;
+  authorDisplayName: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ListPlanNotesResponse = {
+  notes: PlanNoteResponse[];
+};
+
+export type AddPlanNoteRequest = {
+  body: string;
+};
+
+export type AddPlanNoteResponse = {
+  note: PlanNoteResponse;
 };
 
 export function roleLabel(role: FamilyMemberRole) {

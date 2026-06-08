@@ -1,5 +1,5 @@
 import { Redirect, router } from 'expo-router';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -80,40 +80,45 @@ function MilestoneCard({ milestone }: { milestone: MilestoneResponse }) {
   const nextStep = milestone.steps.find((step) => !step.isCompleted);
 
   return (
-    <Card className="gap-3">
-      <View className="flex-row items-start justify-between gap-3">
-        <View className="flex-1 gap-1">
-          <Text className="text-lg font-semibold">{milestone.title}</Text>
-          {milestone.description ? <Text variant="caption">{milestone.description}</Text> : null}
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push({ pathname: '/milestones/[id]', params: { id: milestone.id } })}
+    >
+      <Card className="gap-3">
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="flex-1 gap-1">
+            <Text className="text-lg font-semibold">{milestone.title}</Text>
+            {milestone.description ? <Text variant="caption">{milestone.description}</Text> : null}
+          </View>
+          <Badge label="Milestone" tone="gold" />
         </View>
-        <Badge label="Milestone" tone="gold" />
-      </View>
 
-      <View className="flex-row flex-wrap gap-2">
-        {milestone.targetDate ? <Badge label={`Target ${formatDate(milestone.targetDate)}`} tone="muted" /> : null}
-        {milestone.milestoneType ? <Badge label={milestone.milestoneType} tone="muted" /> : null}
-        {milestone.includeInRecap ? <Badge label="Recap ready" tone="sage" /> : null}
-      </View>
+        <View className="flex-row flex-wrap gap-2">
+          {milestone.targetDate ? <Badge label={`Target ${formatDate(milestone.targetDate)}`} tone="muted" /> : null}
+          {milestone.milestoneType ? <Badge label={milestone.milestoneType} tone="muted" /> : null}
+          {milestone.includeInRecap ? <Badge label="Recap ready" tone="sage" /> : null}
+        </View>
 
-      <View className="gap-2">
-        <View className="flex-row justify-between">
-          <Text variant="caption">Checklist progress</Text>
-          <Text variant="caption">
-            {progress.total > 0 ? `${progress.completed}/${progress.total}` : `${progress.percent}%`}
-          </Text>
+        <View className="gap-2">
+          <View className="flex-row justify-between">
+            <Text variant="caption">Checklist progress</Text>
+            <Text variant="caption">
+              {progress.total > 0 ? `${progress.completed}/${progress.total}` : `${progress.percent}%`}
+            </Text>
+          </View>
+          <View className="h-2 overflow-hidden rounded-lg bg-peacenest-blush">
+            <View className="h-full bg-peacenest-sage" style={{ width: `${progress.percent}%` }} />
+          </View>
         </View>
-        <View className="h-2 overflow-hidden rounded-lg bg-peacenest-blush">
-          <View className="h-full bg-peacenest-sage" style={{ width: `${progress.percent}%` }} />
-        </View>
-      </View>
 
-      {nextStep ? (
-        <View className="rounded-lg bg-peacenest-blush p-3">
-          <Text variant="caption">Next gentle step</Text>
-          <Text className="font-semibold">{nextStep.title}</Text>
-        </View>
-      ) : null}
-    </Card>
+        {nextStep ? (
+          <View className="rounded-lg bg-peacenest-blush p-3">
+            <Text variant="caption">Next gentle step</Text>
+            <Text className="font-semibold">{nextStep.title}</Text>
+          </View>
+        ) : null}
+      </Card>
+    </Pressable>
   );
 }
 

@@ -3,6 +3,7 @@ import { apiFetch } from '@/lib/api/client';
 import type {
   CreateWantOrNeedRequest,
   CreateWantOrNeedResponse,
+  GetWantOrNeedResponse,
   ListWantsAndNeedsResponse,
 } from '@/lib/api/contracts';
 import { queryKeys } from '@/lib/api/query-keys';
@@ -12,6 +13,15 @@ export function useWantsAndNeeds(familyId: string | null | undefined) {
     queryKey: familyId ? queryKeys.wantsAndNeeds(familyId) : ['families', 'none', 'wants-needs'],
     queryFn: () => apiFetch<ListWantsAndNeedsResponse>(`/families/${familyId}/wants-needs`),
     enabled: Boolean(familyId),
+    staleTime: 30_000,
+  });
+}
+
+export function useWantOrNeed(familyId: string | null | undefined, planId: string | null | undefined) {
+  return useQuery({
+    queryKey: familyId && planId ? queryKeys.wantOrNeed(familyId, planId) : ['families', 'none', 'wants-needs', 'none'],
+    queryFn: () => apiFetch<GetWantOrNeedResponse>(`/families/${familyId}/wants-needs/${planId}`),
+    enabled: Boolean(familyId && planId),
     staleTime: 30_000,
   });
 }
