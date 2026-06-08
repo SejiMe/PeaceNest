@@ -7,7 +7,14 @@
     "start": "expo start",
     "android": "expo start --android",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "api": "dotnet run --project src/PeaceNest.Api/PeaceNest.Api.csproj",
+    "api:build": "dotnet build PeaceNest.slnx",
+    "api:test": "dotnet test PeaceNest.slnx",
+    "api:migrate": "dotnet ef database update --project src/PeaceNest.Api/PeaceNest.Api.csproj --startup-project src/PeaceNest.Api/PeaceNest.Api.csproj",
+    "docker:build": "docker build -t peacenest-api:local .",
+    "docker:run": "docker run --rm -p 8080:8080 --env-file src/PeaceNest.Api/.env peacenest-api:local",
+    "web:export": "expo export --platform web --output-dir artifacts/expo-web-check"
   },
   "dependencies": {
     "@expo/metro-runtime": "~56.0.14",
