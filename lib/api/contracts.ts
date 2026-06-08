@@ -38,6 +38,14 @@ export const ScoreLevel = {
 
 export type ScoreLevel = (typeof ScoreLevel)[keyof typeof ScoreLevel];
 
+export const VoteValue = {
+  Support: 0,
+  Neutral: 1,
+  NotNow: 2,
+} as const;
+
+export type VoteValue = (typeof VoteValue)[keyof typeof VoteValue];
+
 export type CurrentUserResponse = {
   id: string;
   supabaseUserId: string;
@@ -212,6 +220,42 @@ export type AddPlanNoteResponse = {
   note: PlanNoteResponse;
 };
 
+export type PlanVoteResponse = {
+  id: string;
+  planId: string;
+  userId: string;
+  userDisplayName: string;
+  voteValue: VoteValue;
+  priorityPoints: number;
+  note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PlanVoteSummaryResponse = {
+  planId: string;
+  totalVotes: number;
+  supportCount: number;
+  neutralCount: number;
+  notNowCount: number;
+  totalPriorityPoints: number;
+  votes: PlanVoteResponse[];
+};
+
+export type ListPlanVotesResponse = {
+  voteSummary: PlanVoteSummaryResponse;
+};
+
+export type CastPlanVoteRequest = {
+  voteValue: VoteValue;
+  priorityPoints: number;
+  note?: string | null;
+};
+
+export type CastPlanVoteResponse = {
+  vote: PlanVoteResponse;
+};
+
 export function roleLabel(role: FamilyMemberRole) {
   switch (role) {
     case FamilyMemberRole.Owner:
@@ -226,6 +270,23 @@ export function roleLabel(role: FamilyMemberRole) {
       return 'Viewer';
     default:
       return 'Family member';
+  }
+}
+
+export function canCastPlanVotes(role: FamilyMemberRole) {
+  return role !== FamilyMemberRole.Viewer;
+}
+
+export function voteValueLabel(voteValue: VoteValue) {
+  switch (voteValue) {
+    case VoteValue.Support:
+      return 'Support';
+    case VoteValue.Neutral:
+      return 'Neutral';
+    case VoteValue.NotNow:
+      return 'Not now';
+    default:
+      return 'Vote';
   }
 }
 

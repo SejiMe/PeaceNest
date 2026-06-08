@@ -7,6 +7,7 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/state';
 import { Text } from '@/components/ui/text';
 import { PlanNotesSection } from '@/components/plan-notes-section';
+import { PlanVotingSection } from '@/components/plan-voting-section';
 import { usePrimaryFamily } from '@/hooks/use-primary-family';
 import { useWantOrNeed } from '@/hooks/use-wants-and-needs';
 import { kindLabel, scoreLabel, WantNeedKind } from '@/lib/api/contracts';
@@ -118,6 +119,13 @@ export default function WantNeedDetailRoute() {
       </Card>
 
       <PlanNotesSection
+        currentUserId={currentUser.data.user.id}
+        currentUserRole={primaryFamily.role}
+        familyId={primaryFamily.familyId}
+        planId={plan.id}
+      />
+
+      <PlanVotingSection
         currentUserId={currentUser.data.user.id}
         currentUserRole={primaryFamily.role}
         familyId={primaryFamily.familyId}

@@ -7,6 +7,7 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/state';
 import { Text } from '@/components/ui/text';
 import { PlanNotesSection } from '@/components/plan-notes-section';
+import { PlanVotingSection } from '@/components/plan-voting-section';
 import { useMilestone } from '@/hooks/use-milestones';
 import { usePrimaryFamily } from '@/hooks/use-primary-family';
 import { milestoneProgress } from '@/lib/api/contracts';
@@ -131,6 +132,13 @@ export default function MilestoneDetailRoute() {
       ) : null}
 
       <PlanNotesSection
+        currentUserId={currentUser.data.user.id}
+        currentUserRole={primaryFamily.role}
+        familyId={primaryFamily.familyId}
+        planId={plan.id}
+      />
+
+      <PlanVotingSection
         currentUserId={currentUser.data.user.id}
         currentUserRole={primaryFamily.role}
         familyId={primaryFamily.familyId}

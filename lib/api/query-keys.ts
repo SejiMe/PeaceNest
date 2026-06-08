@@ -6,4 +6,5 @@ export const queryKeys = {
   milestones: (familyId: string) => ['families', familyId, 'milestones'] as const,
   milestone: (familyId: string, planId: string) => ['families', familyId, 'milestones', planId] as const,
   planNotes: (familyId: string, planId: string) => ['families', familyId, 'plans', planId, 'notes'] as const,
+  planVotes: (familyId: string, planId: string) => ['families', familyId, 'plans', planId, 'votes'] as const,
 };
