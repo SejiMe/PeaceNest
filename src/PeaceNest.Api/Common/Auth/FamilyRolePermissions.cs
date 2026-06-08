@@ -22,6 +22,12 @@ public static class FamilyRolePermissions
             or FamilyMemberRole.AdultMember
             or FamilyMemberRole.ChildMember;
 
+    public static bool CanCastPlanVotes(FamilyMemberRole role) =>
+        role is FamilyMemberRole.Owner
+            or FamilyMemberRole.ParentAdmin
+            or FamilyMemberRole.AdultMember
+            or FamilyMemberRole.ChildMember;
+
     public static bool CanModeratePlanNotes(FamilyMemberRole role) =>
         role is FamilyMemberRole.Owner
             or FamilyMemberRole.ParentAdmin;

@@ -52,6 +52,17 @@ public sealed class FamilyRolePermissionsTests
     [Theory]
     [InlineData(FamilyMemberRole.Owner, true)]
     [InlineData(FamilyMemberRole.ParentAdmin, true)]
+    [InlineData(FamilyMemberRole.AdultMember, true)]
+    [InlineData(FamilyMemberRole.ChildMember, true)]
+    [InlineData(FamilyMemberRole.Viewer, false)]
+    public void CanCastPlanVotes_ExcludesViewerRole(FamilyMemberRole role, bool expected)
+    {
+        Assert.Equal(expected, FamilyRolePermissions.CanCastPlanVotes(role));
+    }
+
+    [Theory]
+    [InlineData(FamilyMemberRole.Owner, true)]
+    [InlineData(FamilyMemberRole.ParentAdmin, true)]
     [InlineData(FamilyMemberRole.AdultMember, false)]
     [InlineData(FamilyMemberRole.ChildMember, false)]
     [InlineData(FamilyMemberRole.Viewer, false)]
