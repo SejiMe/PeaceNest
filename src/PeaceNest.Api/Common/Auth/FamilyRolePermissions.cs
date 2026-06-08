@@ -16,6 +16,16 @@ public static class FamilyRolePermissions
             or FamilyMemberRole.ParentAdmin
             or FamilyMemberRole.AdultMember;
 
+    public static bool CanAddPlanNotes(FamilyMemberRole role) =>
+        role is FamilyMemberRole.Owner
+            or FamilyMemberRole.ParentAdmin
+            or FamilyMemberRole.AdultMember
+            or FamilyMemberRole.ChildMember;
+
+    public static bool CanModeratePlanNotes(FamilyMemberRole role) =>
+        role is FamilyMemberRole.Owner
+            or FamilyMemberRole.ParentAdmin;
+
     public static bool CanInviteFamilyMembers(FamilyMemberRole role) =>
         role is FamilyMemberRole.Owner
             or FamilyMemberRole.ParentAdmin;

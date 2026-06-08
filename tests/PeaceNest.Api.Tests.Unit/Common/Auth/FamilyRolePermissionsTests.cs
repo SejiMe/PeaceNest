@@ -37,4 +37,26 @@ public sealed class FamilyRolePermissionsTests
     {
         Assert.Equal(expected, FamilyRolePermissions.CanCreateFamilyPlans(role));
     }
+
+    [Theory]
+    [InlineData(FamilyMemberRole.Owner, true)]
+    [InlineData(FamilyMemberRole.ParentAdmin, true)]
+    [InlineData(FamilyMemberRole.AdultMember, true)]
+    [InlineData(FamilyMemberRole.ChildMember, true)]
+    [InlineData(FamilyMemberRole.Viewer, false)]
+    public void CanAddPlanNotes_ExcludesViewerRole(FamilyMemberRole role, bool expected)
+    {
+        Assert.Equal(expected, FamilyRolePermissions.CanAddPlanNotes(role));
+    }
+
+    [Theory]
+    [InlineData(FamilyMemberRole.Owner, true)]
+    [InlineData(FamilyMemberRole.ParentAdmin, true)]
+    [InlineData(FamilyMemberRole.AdultMember, false)]
+    [InlineData(FamilyMemberRole.ChildMember, false)]
+    [InlineData(FamilyMemberRole.Viewer, false)]
+    public void CanModeratePlanNotes_OnlyOwnerAndParentAdminCanModerate(FamilyMemberRole role, bool expected)
+    {
+        Assert.Equal(expected, FamilyRolePermissions.CanModeratePlanNotes(role));
+    }
 }
