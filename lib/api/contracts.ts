@@ -46,6 +46,17 @@ export const VoteValue = {
 
 export type VoteValue = (typeof VoteValue)[keyof typeof VoteValue];
 
+export const NotificationType = {
+  FamilyPlanCreated: 0,
+  PlanUpdated: 1,
+  CommentAdded: 2,
+  VoteCast: 3,
+  MilestoneCompleted: 4,
+  MonthlyRecapReady: 5,
+} as const;
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
+
 export type CurrentUserResponse = {
   id: string;
   supabaseUserId: string;
@@ -256,6 +267,31 @@ export type CastPlanVoteResponse = {
   vote: PlanVoteResponse;
 };
 
+export type NotificationResponse = {
+  id: string;
+  familyId: string;
+  recipientUserId: string;
+  actorUserId?: string | null;
+  actorDisplayName?: string | null;
+  type: NotificationType;
+  title: string;
+  body?: string | null;
+  relatedPlanId?: string | null;
+  relatedCommentId?: string | null;
+  relatedRecapId?: string | null;
+  readAt?: string | null;
+  createdAt: string;
+};
+
+export type ListNotificationsResponse = {
+  notifications: NotificationResponse[];
+  unreadCount: number;
+};
+
+export type MarkNotificationReadResponse = {
+  notification: NotificationResponse;
+};
+
 export function roleLabel(role: FamilyMemberRole) {
   switch (role) {
     case FamilyMemberRole.Owner:
@@ -270,6 +306,25 @@ export function roleLabel(role: FamilyMemberRole) {
       return 'Viewer';
     default:
       return 'Family member';
+  }
+}
+
+export function notificationTypeLabel(type: NotificationType) {
+  switch (type) {
+    case NotificationType.FamilyPlanCreated:
+      return 'Plan created';
+    case NotificationType.PlanUpdated:
+      return 'Plan updated';
+    case NotificationType.CommentAdded:
+      return 'New note';
+    case NotificationType.VoteCast:
+      return 'Vote shared';
+    case NotificationType.MilestoneCompleted:
+      return 'Milestone completed';
+    case NotificationType.MonthlyRecapReady:
+      return 'Recap ready';
+    default:
+      return 'Family update';
   }
 }
 
