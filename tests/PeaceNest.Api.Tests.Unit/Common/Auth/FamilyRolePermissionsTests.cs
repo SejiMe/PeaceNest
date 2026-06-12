@@ -42,6 +42,28 @@ public sealed class FamilyRolePermissionsTests
     [InlineData(FamilyMemberRole.Owner, true)]
     [InlineData(FamilyMemberRole.ParentAdmin, true)]
     [InlineData(FamilyMemberRole.AdultMember, true)]
+    [InlineData(FamilyMemberRole.ChildMember, false)]
+    [InlineData(FamilyMemberRole.Viewer, false)]
+    public void CanUpdateFamilyPlans_ExcludesChildAndViewerRoles(FamilyMemberRole role, bool expected)
+    {
+        Assert.Equal(expected, FamilyRolePermissions.CanUpdateFamilyPlans(role));
+    }
+
+    [Theory]
+    [InlineData(FamilyMemberRole.Owner, true)]
+    [InlineData(FamilyMemberRole.ParentAdmin, true)]
+    [InlineData(FamilyMemberRole.AdultMember, true)]
+    [InlineData(FamilyMemberRole.ChildMember, true)]
+    [InlineData(FamilyMemberRole.Viewer, false)]
+    public void CanUpdateMilestoneSteps_ExcludesViewerRole(FamilyMemberRole role, bool expected)
+    {
+        Assert.Equal(expected, FamilyRolePermissions.CanUpdateMilestoneSteps(role));
+    }
+
+    [Theory]
+    [InlineData(FamilyMemberRole.Owner, true)]
+    [InlineData(FamilyMemberRole.ParentAdmin, true)]
+    [InlineData(FamilyMemberRole.AdultMember, true)]
     [InlineData(FamilyMemberRole.ChildMember, true)]
     [InlineData(FamilyMemberRole.Viewer, false)]
     public void CanAddPlanNotes_ExcludesViewerRole(FamilyMemberRole role, bool expected)

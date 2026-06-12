@@ -13,6 +13,10 @@ using CreateWantOrNeedRequest = PeaceNest.Api.Features.WantsAndNeeds.CreateWantO
 using CreateWantOrNeedResponse = PeaceNest.Api.Features.WantsAndNeeds.CreateWantOrNeed.Response;
 using GetWantOrNeedResponse = PeaceNest.Api.Features.WantsAndNeeds.GetWantOrNeed.Response;
 using ListWantsAndNeedsResponse = PeaceNest.Api.Features.WantsAndNeeds.ListWantsAndNeeds.Response;
+using UpdatePlanProgressRequest = PeaceNest.Api.Features.FamilyPlans.UpdatePlanProgress.Request;
+using UpdatePlanProgressResponse = PeaceNest.Api.Features.FamilyPlans.UpdatePlanProgress.Response;
+using CompletePlanResponse = PeaceNest.Api.Features.FamilyPlans.CompletePlan.Response;
+using ArchivePlanResponse = PeaceNest.Api.Features.FamilyPlans.ArchivePlan.Response;
 
 namespace PeaceNest.Api.Tests.Integration.Features.WantsAndNeeds;
 
@@ -128,6 +132,126 @@ public sealed class WantsAndNeedsEndpointTests
             response,
             400,
             ErrorCodes.ValidationFailed);
+    }
+
+    [Fact]
+    public async Task UpdatePlanProgress_UpdatesManualProgressForWantOrNeed()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "eeeeeeee-1111-1111-1111-eeeeeeeeeeee",
+            "parent@example.test");
+        var family = await CreateFamilyAsync(client, "Progress Nest");
+        var created = await CreateWantOrNeedAsync(
+            client,
+            family.Id,
+            NewCreateRequest("Family vacation", WantNeedKind.Want));
+
+        using var response = await client.PutAsJsonAsync(
+            $"/families/{family.Id}/plans/{created.WantOrNeed.Id}/progress",
+            new UpdatePlanProgressRequest(65));
+        var payload = await response.Content.ReadFromJsonAsync<UpdatePlanProgressResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(created.WantOrNeed.Id, payload.Plan.PlanId);
+        Assert.Equal(65, payload.Plan.ProgressPercent);
+        Assert.Equal(PlanStatus.Active, payload.Plan.Status);
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PeaceNestDbContext>();
+        var plan = await dbContext.FamilyPlans.SingleAsync(plan => plan.Id == created.WantOrNeed.Id);
+
+        Assert.Equal(65, plan.ProgressPercent);
+    }
+
+    [Fact]
+    public async Task CompletePlan_MarksWantOrNeedCompleted()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "eeeeeeee-2222-2222-2222-eeeeeeeeeeee",
+            "parent@example.test");
+        var family = await CreateFamilyAsync(client, "Completion Nest");
+        var created = await CreateWantOrNeedAsync(
+            client,
+            family.Id,
+            NewCreateRequest("Tuition", WantNeedKind.Need, progressPercent: 40));
+
+        using var response = await client.PutAsync($"/families/{family.Id}/plans/{created.WantOrNeed.Id}/complete", null);
+        var payload = await response.Content.ReadFromJsonAsync<CompletePlanResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(PlanStatus.Completed, payload.Plan.Status);
+        Assert.Equal(100, payload.Plan.ProgressPercent);
+        Assert.NotNull(payload.Plan.CompletedAt);
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PeaceNestDbContext>();
+        var plan = await dbContext.FamilyPlans.SingleAsync(plan => plan.Id == created.WantOrNeed.Id);
+
+        Assert.Equal(PlanStatus.Completed, plan.Status);
+        Assert.Equal(100, plan.ProgressPercent);
+        Assert.NotNull(plan.CompletedAt);
+    }
+
+    [Fact]
+    public async Task ArchivePlan_RejectsViewerRole()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var ownerClient = CreateAuthenticatedClient(
+            factory,
+            "eeeeeeee-3333-3333-3333-eeeeeeeeeeee",
+            "owner@example.test");
+        var family = await CreateFamilyAsync(ownerClient, "Archive Permission Nest");
+        var created = await CreateWantOrNeedAsync(
+            ownerClient,
+            family.Id,
+            NewCreateRequest("Garden tools", WantNeedKind.Want));
+        var viewerUser = await AddMemberAsync(
+            factory,
+            family.Id,
+            "eeeeeeee-4444-4444-4444-eeeeeeeeeeee",
+            "viewer@example.test",
+            FamilyMemberRole.Viewer);
+        using var viewerClient = CreateAuthenticatedClient(
+            factory,
+            viewerUser.SupabaseUserId.ToString(),
+            viewerUser.Email);
+
+        using var response = await viewerClient.PutAsync($"/families/{family.Id}/plans/{created.WantOrNeed.Id}/archive", null);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        await ProblemDetailsAssert.HasProblemDetailsAsync(
+            response,
+            403,
+            ErrorCodes.AuthorizationDenied);
+    }
+
+    [Fact]
+    public async Task ArchivePlan_MarksWantOrNeedArchived()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "eeeeeeee-5555-5555-5555-eeeeeeeeeeee",
+            "parent@example.test");
+        var family = await CreateFamilyAsync(client, "Archive Nest");
+        var created = await CreateWantOrNeedAsync(
+            client,
+            family.Id,
+            NewCreateRequest("Someday trip", WantNeedKind.Want));
+
+        using var response = await client.PutAsync($"/families/{family.Id}/plans/{created.WantOrNeed.Id}/archive", null);
+        var payload = await response.Content.ReadFromJsonAsync<ArchivePlanResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(PlanStatus.Archived, payload.Plan.Status);
+        Assert.NotNull(payload.Plan.ArchivedAt);
     }
 
     [Fact]

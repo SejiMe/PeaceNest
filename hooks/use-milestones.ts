@@ -5,6 +5,8 @@ import type {
   CreateMilestoneResponse,
   GetMilestoneResponse,
   ListMilestonesResponse,
+  UpdateMilestoneStepCompletionRequest,
+  UpdateMilestoneStepCompletionResponse,
 } from '@/lib/api/contracts';
 import { queryKeys } from '@/lib/api/query-keys';
 
@@ -37,6 +39,25 @@ export function useCreateMilestone(familyId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.milestones(familyId) });
+    },
+  });
+}
+
+export function useUpdateMilestoneStepCompletion(familyId: string, milestoneId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ isCompleted, stepId }: UpdateMilestoneStepCompletionRequest & { stepId: string }) =>
+      apiFetch<UpdateMilestoneStepCompletionResponse>(
+        `/families/${familyId}/milestones/${milestoneId}/steps/${stepId}/completion`,
+        {
+          method: 'PUT',
+          body: { isCompleted },
+        },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.milestones(familyId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.milestone(familyId, milestoneId) });
     },
   });
 }

@@ -14,6 +14,8 @@ using CreateMilestoneResponse = PeaceNest.Api.Features.FamilyMilestones.CreateMi
 using CreateMilestoneStepRequest = PeaceNest.Api.Features.FamilyMilestones.CreateMilestone.CreateMilestoneStepRequest;
 using GetMilestoneResponse = PeaceNest.Api.Features.FamilyMilestones.GetMilestone.Response;
 using ListMilestonesResponse = PeaceNest.Api.Features.FamilyMilestones.ListMilestones.Response;
+using UpdateMilestoneStepCompletionRequest = PeaceNest.Api.Features.FamilyMilestones.UpdateMilestoneStepCompletion.Request;
+using UpdateMilestoneStepCompletionResponse = PeaceNest.Api.Features.FamilyMilestones.UpdateMilestoneStepCompletion.Response;
 
 namespace PeaceNest.Api.Tests.Integration.Features.FamilyMilestones;
 
@@ -135,6 +137,95 @@ public sealed class FamilyMilestonesEndpointTests
             response,
             400,
             ErrorCodes.ValidationFailed);
+    }
+
+    [Fact]
+    public async Task UpdateMilestoneStepCompletion_AllowsChildMemberAndRecalculatesProgress()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var ownerClient = CreateAuthenticatedClient(
+            factory,
+            "dddddddd-2222-2222-2222-dddddddddddd",
+            "owner@example.test");
+        var family = await CreateFamilyAsync(ownerClient, "Checklist Nest");
+        var created = await CreateMilestoneAsync(
+            ownerClient,
+            family.Id,
+            NewCreateRequest(
+                "Visit grandparents",
+                [
+                    new("Pick date", null, 1),
+                    new("Call grandparents", null, 2)
+                ]));
+        var childUser = await AddMemberAsync(
+            factory,
+            family.Id,
+            "dddddddd-3333-3333-3333-dddddddddddd",
+            "child@example.test",
+            FamilyMemberRole.ChildMember);
+        using var childClient = CreateAuthenticatedClient(
+            factory,
+            childUser.SupabaseUserId.ToString(),
+            childUser.Email);
+        var step = created.Milestone.Steps.First();
+
+        using var response = await childClient.PutAsJsonAsync(
+            $"/families/{family.Id}/milestones/{created.Milestone.Id}/steps/{step.Id}/completion",
+            new UpdateMilestoneStepCompletionRequest(true));
+        var payload = await response.Content.ReadFromJsonAsync<UpdateMilestoneStepCompletionResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(payload);
+        Assert.Equal(50, payload.Milestone.ProgressPercent);
+        var updatedStep = payload.Milestone.Steps.Single(candidate => candidate.Id == step.Id);
+        Assert.True(updatedStep.IsCompleted);
+        Assert.Equal(childUser.Id, updatedStep.CompletedByUserId);
+        Assert.NotNull(updatedStep.CompletedAt);
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PeaceNestDbContext>();
+        var plan = await dbContext.FamilyPlans
+            .Include(candidate => candidate.GoalSteps)
+            .SingleAsync(candidate => candidate.Id == created.Milestone.Id);
+
+        Assert.Equal(50, plan.ProgressPercent);
+        Assert.Equal(childUser.Id, plan.GoalSteps.Single(candidate => candidate.Id == step.Id).CompletedByUserId);
+    }
+
+    [Fact]
+    public async Task UpdateMilestoneStepCompletion_RejectsViewerRole()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var ownerClient = CreateAuthenticatedClient(
+            factory,
+            "dddddddd-4444-4444-4444-dddddddddddd",
+            "owner@example.test");
+        var family = await CreateFamilyAsync(ownerClient, "Checklist Permission Nest");
+        var created = await CreateMilestoneAsync(
+            ownerClient,
+            family.Id,
+            NewCreateRequest("Sunday dinner", [new("Set table", null, 1)]));
+        var viewerUser = await AddMemberAsync(
+            factory,
+            family.Id,
+            "dddddddd-5555-5555-5555-dddddddddddd",
+            "viewer@example.test",
+            FamilyMemberRole.Viewer);
+        using var viewerClient = CreateAuthenticatedClient(
+            factory,
+            viewerUser.SupabaseUserId.ToString(),
+            viewerUser.Email);
+        var step = created.Milestone.Steps.Single();
+
+        using var response = await viewerClient.PutAsJsonAsync(
+            $"/families/{family.Id}/milestones/{created.Milestone.Id}/steps/{step.Id}/completion",
+            new UpdateMilestoneStepCompletionRequest(true));
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        await ProblemDetailsAssert.HasProblemDetailsAsync(
+            response,
+            403,
+            ErrorCodes.AuthorizationDenied);
     }
 
     [Fact]

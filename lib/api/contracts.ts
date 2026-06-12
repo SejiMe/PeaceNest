@@ -298,6 +298,40 @@ export type MarkNotificationReadResponse = {
   notification: NotificationResponse;
 };
 
+export type PlanActionResponse = {
+  planId: string;
+  familyId: string;
+  status: PlanStatus;
+  progressPercent: number;
+  completedAt?: string | null;
+  archivedAt?: string | null;
+  updatedAt: string;
+};
+
+export type UpdatePlanProgressRequest = {
+  progressPercent: number;
+};
+
+export type UpdatePlanProgressResponse = {
+  plan: PlanActionResponse;
+};
+
+export type CompletePlanResponse = {
+  plan: PlanActionResponse;
+};
+
+export type ArchivePlanResponse = {
+  plan: PlanActionResponse;
+};
+
+export type UpdateMilestoneStepCompletionRequest = {
+  isCompleted: boolean;
+};
+
+export type UpdateMilestoneStepCompletionResponse = {
+  milestone: MilestoneResponse;
+};
+
 export type MonthlyRecapStatsResponse = {
   totalPlans: number;
   activePlans: number;
@@ -388,6 +422,17 @@ export function recapItemLabel(itemType: string) {
       return 'Still growing';
     default:
       return 'Family moment';
+  }
+}
+
+export function planStatusLabel(status: PlanStatus) {
+  switch (status) {
+    case PlanStatus.Completed:
+      return 'Completed';
+    case PlanStatus.Archived:
+      return 'Archived';
+    default:
+      return 'Active';
   }
 }
 
