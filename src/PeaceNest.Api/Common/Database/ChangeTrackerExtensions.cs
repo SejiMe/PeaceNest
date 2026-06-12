@@ -11,9 +11,20 @@ public static class ChangeTrackerExtensions
     {
         foreach (var entry in changeTracker.Entries())
         {
+            ApplyVersion7GuidConvention(entry);
             ApplySoftDeleteConvention(entry, utcNow);
             ApplyAuditConvention(entry, utcNow);
             ApplyConcurrencyConvention(entry);
+        }
+    }
+
+    private static void ApplyVersion7GuidConvention(EntityEntry entry)
+    {
+        if (entry.State is EntityState.Added &&
+            entry.Entity is IUsesVersion7Guid timeOrderedEntity &&
+            timeOrderedEntity.Id == Guid.Empty)
+        {
+            timeOrderedEntity.Id = Guid.CreateVersion7();
         }
     }
 

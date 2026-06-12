@@ -15,6 +15,14 @@ public static class ModelBuilderExtensions
                 modelBuilder.Entity(entityType.ClrType).Property(nameof(IAuditableEntity.UpdatedAt)).IsRequired();
             }
 
+            if (typeof(IUsesVersion7Guid).IsAssignableFrom(entityType.ClrType))
+            {
+                modelBuilder
+                    .Entity(entityType.ClrType)
+                    .Property(nameof(IUsesVersion7Guid.Id))
+                    .HasValueGenerator<Version7GuidValueGenerator>();
+            }
+
             if (typeof(ISoftDeletableEntity).IsAssignableFrom(entityType.ClrType))
             {
                 modelBuilder.Entity(entityType.ClrType).HasQueryFilter(CreateSoftDeleteFilter(entityType.ClrType));

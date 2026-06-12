@@ -1,6 +1,8 @@
+using PeaceNest.Api.Common.Database;
+
 namespace PeaceNest.Api.Common.Database.Entities;
 
-public sealed class RecapItem
+public sealed class RecapItem : IUsesVersion7Guid
 {
     public Guid Id { get; set; }
 

@@ -69,7 +69,6 @@ public sealed class Endpoint : Endpoint<Request, Response>
 
         var note = new Comment
         {
-            Id = Guid.NewGuid(),
             PlanId = planId,
             AuthorUserId = user.Id,
             ParentCommentId = null,

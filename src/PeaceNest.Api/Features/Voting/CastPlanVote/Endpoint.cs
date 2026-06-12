@@ -76,7 +76,6 @@ public sealed class Endpoint : Endpoint<Request, Response>
         {
             vote = new PlanVote
             {
-                Id = Guid.NewGuid(),
                 PlanId = planId,
                 UserId = user.Id,
                 User = user

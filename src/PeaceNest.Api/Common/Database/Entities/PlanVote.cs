@@ -1,6 +1,8 @@
+using PeaceNest.Api.Common.Database;
+
 namespace PeaceNest.Api.Common.Database.Entities;
 
-public sealed class PlanVote : IAuditableEntity
+public sealed class PlanVote : IUsesVersion7Guid, IAuditableEntity
 {
     public Guid Id { get; set; }
 

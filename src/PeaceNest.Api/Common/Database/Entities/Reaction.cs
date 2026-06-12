@@ -1,6 +1,8 @@
+using PeaceNest.Api.Common.Database;
+
 namespace PeaceNest.Api.Common.Database.Entities;
 
-public sealed class Reaction
+public sealed class Reaction : IUsesVersion7Guid
 {
     public Guid Id { get; set; }
 

@@ -21,6 +21,34 @@ public sealed class ChangeTrackerConventionTests
     }
 
     [Fact]
+    public void ApplyPeaceNestPersistenceConventions_AssignsVersion7GuidForMarkedAddedEntity()
+    {
+        using var dbContext = CreateDbContext();
+        var now = new DateTimeOffset(2026, 6, 7, 0, 0, 0, TimeSpan.Zero);
+        var entity = new TimeOrderedTestEntity { Name = "Vote cast" };
+
+        dbContext.TimeOrderedTestEntities.Add(entity);
+        dbContext.ChangeTracker.ApplyPeaceNestPersistenceConventions(now);
+
+        Assert.NotEqual(Guid.Empty, entity.Id);
+        Assert.Equal('7', entity.Id.ToString("D")[14]);
+    }
+
+    [Fact]
+    public void ApplyPeaceNestPersistenceConventions_DoesNotReplaceExplicitGuidForUnmarkedAddedEntity()
+    {
+        using var dbContext = CreateDbContext();
+        var now = new DateTimeOffset(2026, 6, 7, 0, 0, 0, TimeSpan.Zero);
+        var id = Guid.NewGuid();
+        var entity = new TestEntity { Id = id, Name = "Family root" };
+
+        dbContext.TestEntities.Add(entity);
+        dbContext.ChangeTracker.ApplyPeaceNestPersistenceConventions(now);
+
+        Assert.Equal(id, entity.Id);
+    }
+
+    [Fact]
     public void ApplyPeaceNestPersistenceConventions_UpdatesAuditAndVersionForModifiedEntity()
     {
         using var dbContext = CreateDbContext();
@@ -119,9 +147,12 @@ public sealed class ChangeTrackerConventionTests
 
         public DbSet<TestEntity> TestEntities => Set<TestEntity>();
 
+        public DbSet<TimeOrderedTestEntity> TimeOrderedTestEntities => Set<TimeOrderedTestEntity>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TestEntity>().HasKey(entity => entity.Id);
+            modelBuilder.Entity<TimeOrderedTestEntity>().HasKey(entity => entity.Id);
             modelBuilder.ApplyPeaceNestConventions();
         }
     }
@@ -139,5 +170,12 @@ public sealed class ChangeTrackerConventionTests
         public DateTimeOffset? DeletedAt { get; set; }
 
         public int Version { get; set; }
+    }
+
+    private sealed class TimeOrderedTestEntity : IUsesVersion7Guid
+    {
+        public Guid Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
     }
 }

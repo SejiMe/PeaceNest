@@ -1,8 +1,9 @@
 using System.Text.Json;
+using PeaceNest.Api.Common.Database;
 
 namespace PeaceNest.Api.Common.Database.Entities;
 
-public sealed class ActivityLog
+public sealed class ActivityLog : IUsesVersion7Guid
 {
     public Guid Id { get; set; }
 

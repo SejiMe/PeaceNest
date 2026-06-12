@@ -75,7 +75,6 @@ public sealed class Endpoint : Endpoint<Request, Response>
         var token = _invitationTokenService.GenerateToken();
         var invitation = new FamilyInvitation
         {
-            Id = Guid.NewGuid(),
             FamilyId = familyId,
             InvitedEmail = invitedEmail,
             InvitedRole = request.InvitedRole,

@@ -80,7 +80,6 @@ public sealed class Endpoint : Endpoint<Request, Response>
         {
             plan.GoalSteps.Add(new GoalStep
             {
-                Id = Guid.NewGuid(),
                 Title = step.Title,
                 Description = step.Description,
                 SortOrder = step.SortOrder,

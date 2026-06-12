@@ -1,8 +1,9 @@
 using System.Text.Json;
+using PeaceNest.Api.Common.Database;
 
 namespace PeaceNest.Api.Common.Database.Entities;
 
-public sealed class Recap : IAuditableEntity, ISoftDeletableEntity
+public sealed class Recap : IUsesVersion7Guid, IAuditableEntity, ISoftDeletableEntity
 {
     public Guid Id { get; set; }
 

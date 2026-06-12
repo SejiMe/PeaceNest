@@ -1,6 +1,8 @@
+using PeaceNest.Api.Common.Database;
+
 namespace PeaceNest.Api.Common.Database.Entities;
 
-public sealed class Notification : ISoftDeletableEntity
+public sealed class Notification : IUsesVersion7Guid, ISoftDeletableEntity
 {
     public Guid Id { get; set; }
 
