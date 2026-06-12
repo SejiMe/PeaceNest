@@ -57,6 +57,12 @@ export const NotificationType = {
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 
+export const RecapPeriodType = {
+  Monthly: 0,
+} as const;
+
+export type RecapPeriodType = (typeof RecapPeriodType)[keyof typeof RecapPeriodType];
+
 export type CurrentUserResponse = {
   id: string;
   supabaseUserId: string;
@@ -292,6 +298,52 @@ export type MarkNotificationReadResponse = {
   notification: NotificationResponse;
 };
 
+export type MonthlyRecapStatsResponse = {
+  totalPlans: number;
+  activePlans: number;
+  newPlans: number;
+  completedPlans: number;
+  completedMilestones: number;
+  delayedPlans: number;
+  notesAdded: number;
+  votesCast: number;
+};
+
+export type RecapItemResponse = {
+  id: string;
+  planId?: string | null;
+  memoryId?: string | null;
+  itemType: string;
+  title: string;
+  description?: string | null;
+  sortOrder: number;
+  createdAt: string;
+};
+
+export type MonthlyRecapResponse = {
+  id: string;
+  familyId: string;
+  periodType: RecapPeriodType;
+  periodStart: string;
+  periodEnd: string;
+  title: string;
+  summary?: string | null;
+  stats: MonthlyRecapStatsResponse;
+  generatedByUserId: string;
+  publishedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: RecapItemResponse[];
+};
+
+export type GetMonthlyRecapResponse = {
+  recap: MonthlyRecapResponse;
+};
+
+export type GenerateMonthlyRecapResponse = {
+  recap: MonthlyRecapResponse;
+};
+
 export function roleLabel(role: FamilyMemberRole) {
   switch (role) {
     case FamilyMemberRole.Owner:
@@ -325,6 +377,17 @@ export function notificationTypeLabel(type: NotificationType) {
       return 'Recap ready';
     default:
       return 'Family update';
+  }
+}
+
+export function recapItemLabel(itemType: string) {
+  switch (itemType) {
+    case 'completed_plan':
+      return 'Peace win';
+    case 'still_growing':
+      return 'Still growing';
+    default:
+      return 'Family moment';
   }
 }
 
