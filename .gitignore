@@ -1,7 +1,24 @@
+# Local AI/workspace state
 .ai-workspace/
+
+# Editor and OS state
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# JavaScript / Expo dependencies and caches
 node_modules/
 .expo/
 .expo-shared/
+.turbo/
+.next/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Local secrets and machine-specific backend configuration
 .env
@@ -13,10 +30,19 @@ node_modules/
 src/PeaceNest.Api/appsettings.Development.json
 src/PeaceNest.Api/appsettings.Local.json
 
+# Build, test, and generated output
 bin/
 obj/
+dist/
+build/
 artifacts/
+coverage/
+TestResults/
+*.tsbuildinfo
+
+# .NET user and package artifacts
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
+*.nupkg
