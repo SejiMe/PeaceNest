@@ -8,6 +8,11 @@ PeaceNest is a calm family planning app for shared Wants & Needs, Family Milesto
 - Backend: ASP.NET Core Web API, FastEndpoints, EF Core, Supabase Postgres/Auth
 - Deployment target: Dockerized backend on Railway
 
+Project layout:
+
+- Frontend app: `src/PeaceNest.App`
+- Backend API: `src/PeaceNest.Api`
+
 ## Prerequisites
 
 - Node.js LTS and npm
@@ -29,7 +34,7 @@ dotnet restore PeaceNest.slnx
 
 Before launching either app, configure the required environment values:
 
-- Frontend: copy `.env.example` to `.env`
+- Frontend: copy `src/PeaceNest.App/.env.example` to `src/PeaceNest.App/.env`
 - Backend local development: use .NET user secrets, shell environment variables, or `src/PeaceNest.Api/.env`
 - Backend Docker/Railway: use environment variables
 
@@ -41,10 +46,10 @@ These scripts can be run from the repository root with `npm run <script>`.
 
 | Script | Purpose |
 | --- | --- |
-| `start` | Start Expo dev server. |
-| `android` | Start Expo and open Android target. |
-| `web` | Start Expo for web development. |
-| `typecheck` | Run TypeScript type checking. |
+| `start` | Start Expo dev server from `src/PeaceNest.App`. |
+| `android` | Start Expo from `src/PeaceNest.App` and open Android target. |
+| `web` | Start Expo from `src/PeaceNest.App` for web development. |
+| `typecheck` | Run frontend TypeScript type checking. |
 | `api` | Run the ASP.NET Core backend locally. |
 | `api:build` | Build the backend solution. |
 | `api:test` | Run backend unit and integration tests. |
@@ -67,7 +72,7 @@ In Supabase:
 ### 2. Configure Frontend Environment
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item src/PeaceNest.App/.env.example src/PeaceNest.App/.env
 ```
 
 Fill in:
@@ -186,7 +191,7 @@ See [Backend Railway Deployment](docs/deployment/backend-railway.md).
 
 ### Frontend Production
 
-The current repo supports Expo web export verification:
+The current repo supports Expo web export verification from the frontend workspace:
 
 ```powershell
 npm run web:export

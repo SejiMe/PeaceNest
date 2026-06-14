@@ -56,6 +56,10 @@ _Avoid_: Database-generated primary key, ULID string, random ID for append-heavy
 The Expo app shell, navigation, auth session handling, API client, and Warm Nest UI tokens built before full product screens.
 _Avoid_: Fake finished screens, UI-only prototype
 
+**Frontend App Project**:
+The Expo and React Native workspace under `src/PeaceNest.App`, kept beside the backend API project and runnable through root npm wrapper scripts.
+_Avoid_: Root-scattered frontend project, backend-coupled UI project
+
 **Server State**:
 Backend-owned PeaceNest data fetched, cached, invalidated, and refreshed by the frontend.
 _Avoid_: Global source of truth, duplicated business state
@@ -153,6 +157,7 @@ _Avoid_: File attachment, media asset
 - A **Family Member** is authorized through **Backend Authorization** before accessing family-scoped data.
 - A **Family Plan** belongs to exactly one **Family Workspace**.
 - A family-scoped **Feature Endpoint** includes the family workspace identity in its route or resolves it through an explicitly authorized context.
+- The **Frontend App Project** communicates with backend **Feature Endpoints** through the centralized API client.
 - A **Family Plan** has **Plan Progress**.
 - A **Want or Need** is a specialized **Family Plan**.
 - A **Family Milestone** is a specialized **Family Plan**.
@@ -194,6 +199,7 @@ _Avoid_: File attachment, media asset
 - Resolved: create an initial planning/docs commit containing `.agents/`, `.gitignore`, `AGENTS.md`, and `CONTEXT.md` before backend scaffolding. Backend source scaffolding belongs in the next commit.
 - Resolved: the **Backend Test Strategy** starts with xUnit unit tests plus FastEndpoints integration tests using a replaceable test database strategy. Add Testcontainers when Postgres-specific behavior matters, such as `citext`, migrations, concurrency behavior, or realistic SQL constraints.
 - Resolved: full frontend screens wait until the backend has family workspace and the first **Want or Need** API slice working. **Frontend Foundation** may be scaffolded earlier when useful, but data-moving screens should be built against working backend endpoints.
+- Resolved: the **Frontend App Project** lives under `src/PeaceNest.App` beside `src/PeaceNest.Api`. Root npm scripts remain the stable developer entry point and delegate frontend commands into the app workspace.
 - Resolved: frontend **Server State** uses TanStack Query through the centralized API client. Supabase **Auth State** stays in a dedicated auth provider/context, and temporary local UI state stays near the component.
 - Resolved: the **Dev Auth Token Page** is compiled or rendered only in non-production environments and fails closed in production. It may display and copy the current Supabase access token for local testing, but must never log tokens or send them to telemetry.
 - Resolved: UI polish uses **Warm Nest UI** tokens exactly, with functional contrast and restrained accent usage as acceptance criteria. Rose is for primary actions, gold for wins, sage for progress/completion, and charcoal for readable text.

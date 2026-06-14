@@ -419,30 +419,32 @@ tests/
 Frontend shape:
 
 ```txt
-app/
-  index.tsx
-  auth/
-    sign-in.tsx
-  dev/
-    auth-token.tsx
-  family/
-    setup.tsx
-    invite.tsx
-  tabs/
-    home.tsx
-    wants-needs.tsx
-    milestones.tsx
-    recaps.tsx
-    notifications.tsx
-  wants-needs/
-    [id].tsx
-    create.tsx
-  milestones/
-    [id].tsx
-    create.tsx
-  settings/
-    family.tsx
-    profile.tsx
+src/
+  PeaceNest.App/
+    app/
+      index.tsx
+      auth/
+        sign-in.tsx
+      dev/
+        auth-token.tsx
+      family/
+        setup.tsx
+        invite.tsx
+      tabs/
+        home.tsx
+        wants-needs.tsx
+        milestones.tsx
+        recaps.tsx
+        notifications.tsx
+      wants-needs/
+        [id].tsx
+        create.tsx
+      milestones/
+        [id].tsx
+        create.tsx
+      settings/
+        family.tsx
+        profile.tsx
 ```
 
 Backend feature slice shape:

@@ -6,10 +6,10 @@ Do not commit real secrets. The repository intentionally ignores `.env`, `.env.*
 
 ## Frontend
 
-Store local frontend values in the root `.env` file. Start from:
+Store local frontend values in `src/PeaceNest.App/.env`. Start from:
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item src/PeaceNest.App/.env.example src/PeaceNest.App/.env
 ```
 
 Required for development and production:
@@ -98,7 +98,7 @@ Do not use:
 
 Development:
 
-- [ ] Root `.env` exists and has frontend Supabase/API values.
+- [ ] `src/PeaceNest.App/.env` exists and has frontend Supabase/API values.
 - [ ] Backend user secrets or env vars include Supabase Auth settings.
 - [ ] Backend has a valid runtime database connection.
 - [ ] Migration connection is configured before running `npm run api:migrate`.
