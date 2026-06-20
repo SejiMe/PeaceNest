@@ -1,20 +1,3 @@
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/preflight.css" layer(base);
-@import "tailwindcss/utilities.css";
-@import "nativewind/theme";
-
-@theme {
-  --color-peacenest-background: #fff9f5;
-  --color-peacenest-surface: #ffffff;
-  --color-peacenest-soft-rose: #f6c7c8;
-  --color-peacenest-rose: #d97c83;
-  --color-peacenest-blush: #fbe7e5;
-  --color-peacenest-gold: #d6a84f;
-  --color-peacenest-gold-light: #fff1c7;
-  --color-peacenest-sage: #a8bfa3;
-  --color-peacenest-clay: #b8755a;
-  --color-peacenest-charcoal: #2f2a28;
-  --color-peacenest-muted: #8a7d78;
-  --color-peacenest-border: #efe2dc;
-  --color-peacenest-danger: #d96b6b;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
