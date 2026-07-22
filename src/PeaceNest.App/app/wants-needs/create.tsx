@@ -14,10 +14,18 @@ import { ScoreLevel, WantNeedKind, type ScoreLevel as ScoreLevelValue, type Want
 import { useAuth } from '@/lib/auth/auth-provider';
 import { cn } from '@/lib/utils';
 
-const scoreOptions: Array<{ label: string; value: ScoreLevelValue }> = [
+type ScoreOption = { label: string; value: ScoreLevelValue };
+
+const urgencyOptions: ScoreOption[] = [
   { label: 'Someday', value: ScoreLevel.Low },
   { label: 'Soon', value: ScoreLevel.Medium },
   { label: 'Now', value: ScoreLevel.High },
+];
+
+const levelOptions: ScoreOption[] = [
+  { label: 'Low', value: ScoreLevel.Low },
+  { label: 'Medium', value: ScoreLevel.Medium },
+  { label: 'High', value: ScoreLevel.High },
 ];
 
 export default function CreateWantNeedRoute() {
@@ -45,10 +53,24 @@ export default function CreateWantNeedRoute() {
     );
   }
 
-  return <CreateWantNeedForm familyId={primaryFamily.familyId} familyName={primaryFamily.familyName} />;
+  return (
+    <CreateWantNeedForm
+      familyId={primaryFamily.familyId}
+      familyName={primaryFamily.familyName}
+      preferredCurrency={primaryFamily.preferredCurrency}
+    />
+  );
 }
 
-function CreateWantNeedForm({ familyId, familyName }: { familyId: string; familyName: string }) {
+function CreateWantNeedForm({
+  familyId,
+  familyName,
+  preferredCurrency,
+}: {
+  familyId: string;
+  familyName: string;
+  preferredCurrency: string;
+}) {
   const createWantOrNeed = useCreateWantOrNeed(familyId);
   const [kind, setKind] = useState<WantNeedKindValue>(WantNeedKind.Need);
   const [title, setTitle] = useState('');
@@ -76,7 +98,7 @@ function CreateWantNeedForm({ familyId, familyName }: { familyId: string; family
         priorityRank: null,
         progressPercent: Math.max(0, Math.min(100, Math.round(parsedProgress))),
         estimatedCostAmount: parsedCost,
-        estimatedCostCurrency: parsedCost === null ? null : 'USD',
+        estimatedCostCurrency: parsedCost === null ? null : preferredCurrency,
         urgencyLevel,
         importanceLevel,
         emotionalValueLevel,
@@ -149,9 +171,14 @@ function CreateWantNeedForm({ familyId, familyName }: { familyId: string; family
           </View>
         </View>
 
-        <ScorePicker label="Urgency" onChange={setUrgencyLevel} value={urgencyLevel} />
-        <ScorePicker label="Importance" onChange={setImportanceLevel} value={importanceLevel} />
-        <ScorePicker label="Emotional value" onChange={setEmotionalValueLevel} value={emotionalValueLevel} />
+        <ScorePicker label="Urgency" onChange={setUrgencyLevel} options={urgencyOptions} value={urgencyLevel} />
+        <ScorePicker label="Importance" onChange={setImportanceLevel} options={levelOptions} value={importanceLevel} />
+        <ScorePicker
+          label="Emotional value"
+          onChange={setEmotionalValueLevel}
+          options={levelOptions}
+          value={emotionalValueLevel}
+        />
 
         <Button
           disabled={!title.trim() || createWantOrNeed.isPending}
@@ -181,20 +208,22 @@ function KindButton({ active, label, onPress }: { active: boolean; label: string
 function ScorePicker({
   label,
   onChange,
+  options,
   value,
 }: {
   label: string;
   onChange: (value: ScoreLevelValue) => void;
+  options: ScoreOption[];
   value: ScoreLevelValue;
 }) {
   return (
     <View className="gap-2">
       <View className="flex-row items-center justify-between">
         <Text className="font-semibold">{label}</Text>
-        <Badge label={scoreOptions.find((option) => option.value === value)?.label ?? 'Soon'} />
+        <Badge label={options.find((option) => option.value === value)?.label ?? options[0].label} />
       </View>
       <View className="flex-row gap-2">
-        {scoreOptions.map((option) => (
+        {options.map((option) => (
           <Pressable
             key={`${label}-${option.value}`}
             accessibilityRole="button"

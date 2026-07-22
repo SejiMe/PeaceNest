@@ -14,5 +14,6 @@ public sealed record NotificationResponse(
     Guid? RelatedPlanId,
     Guid? RelatedCommentId,
     Guid? RelatedRecapId,
+    Guid? RelatedJoinRequestId,
     DateTimeOffset? ReadAt,
     DateTimeOffset CreatedAt);

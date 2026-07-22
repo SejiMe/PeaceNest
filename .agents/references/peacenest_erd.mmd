@@ -50,6 +50,51 @@ erDiagram
         timestamptz updated_at
     }
 
+    FAMILY_JOIN_CODES {
+        uuid id PK
+        uuid family_id FK
+        text code_hash UK
+        family_join_code_status status
+        int request_count
+        int max_requests
+        timestamptz expires_at
+        uuid created_by_user_id FK
+        uuid revoked_by_user_id FK
+        timestamptz revoked_at
+        timestamptz created_at
+        timestamptz updated_at
+        int version
+    }
+
+    FAMILY_JOIN_REQUESTS {
+        uuid id PK
+        uuid family_id FK
+        uuid join_code_id FK
+        uuid requester_user_id FK
+        family_join_request_status status
+        timestamptz expires_at
+        uuid reviewed_by_user_id FK
+        timestamptz reviewed_at
+        family_member_role approved_role
+        timestamptz created_at
+        timestamptz updated_at
+        int version
+    }
+
+    FAMILY_RECOVERY_CODES {
+        uuid id PK
+        uuid family_id FK
+        uuid creator_user_id FK
+        text code_hash UK
+        family_recovery_code_status status
+        timestamptz expires_at
+        timestamptz used_at
+        timestamptz purge_claimed_at
+        timestamptz created_at
+        timestamptz updated_at
+        int version
+    }
+
     PLAN_CATEGORIES {
         uuid id PK
         uuid family_id FK
@@ -213,6 +258,7 @@ erDiagram
         uuid related_plan_id FK
         uuid related_comment_id FK
         uuid related_recap_id FK
+        uuid related_join_request_id FK
         timestamptz read_at
         timestamptz created_at
         timestamptz deleted_at
@@ -237,6 +283,16 @@ erDiagram
     FAMILIES ||--o{ FAMILY_INVITATIONS : has
     USERS ||--o{ FAMILY_INVITATIONS : creates
     USERS ||--o{ FAMILY_INVITATIONS : accepts
+
+    FAMILIES ||--o{ FAMILY_JOIN_CODES : has
+    USERS ||--o{ FAMILY_JOIN_CODES : creates
+    USERS ||--o{ FAMILY_JOIN_CODES : revokes
+    FAMILIES ||--o{ FAMILY_JOIN_REQUESTS : receives
+    FAMILY_JOIN_CODES ||--o{ FAMILY_JOIN_REQUESTS : produces
+    USERS ||--o{ FAMILY_JOIN_REQUESTS : requests
+    USERS ||--o{ FAMILY_JOIN_REQUESTS : reviews
+    FAMILIES ||--o{ FAMILY_RECOVERY_CODES : has
+    USERS ||--o{ FAMILY_RECOVERY_CODES : owns
 
     FAMILIES ||--o{ PLAN_CATEGORIES : owns
     FAMILIES ||--o{ FAMILY_PLANS : owns
@@ -279,6 +335,7 @@ erDiagram
     FAMILY_PLANS ||--o{ NOTIFICATIONS : relates_to
     COMMENTS ||--o{ NOTIFICATIONS : relates_to
     RECAPS ||--o{ NOTIFICATIONS : relates_to
+    FAMILY_JOIN_REQUESTS ||--o{ NOTIFICATIONS : relates_to
 
     FAMILIES ||--o{ ACTIVITY_LOGS : records
     USERS ||--o{ ACTIVITY_LOGS : performs

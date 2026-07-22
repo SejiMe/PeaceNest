@@ -22,6 +22,9 @@ public sealed class FamilyInvitationConfiguration : IEntityTypeConfiguration<Fam
             .HasColumnName("invited_role")
             .HasColumnType("family_member_role");
         builder.Property(invitation => invitation.TokenHash).HasColumnName("token_hash").HasMaxLength(128);
+        builder.Property(invitation => invitation.InvitationCodeHash)
+            .HasColumnName("invitation_code_hash")
+            .HasMaxLength(64);
         builder.Property(invitation => invitation.Status).HasColumnName("status").HasColumnType("family_invitation_status");
         builder.Property(invitation => invitation.ExpiresAt).HasColumnName("expires_at");
         builder.Property(invitation => invitation.AcceptedByUserId).HasColumnName("accepted_by_user_id");
@@ -48,6 +51,11 @@ public sealed class FamilyInvitationConfiguration : IEntityTypeConfiguration<Fam
         builder.HasIndex(invitation => invitation.TokenHash)
             .IsUnique()
             .HasDatabaseName("ux_family_invitations_token_hash");
+
+        builder.HasIndex(invitation => invitation.InvitationCodeHash)
+            .IsUnique()
+            .HasFilter("invitation_code_hash IS NOT NULL")
+            .HasDatabaseName("ux_family_invitations_invitation_code_hash");
 
         builder.HasIndex(invitation => new { invitation.FamilyId, invitation.InvitedEmail })
             .HasFilter("status = 'pending'::family_invitation_status")

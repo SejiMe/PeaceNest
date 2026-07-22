@@ -17,6 +17,7 @@ public static class NotificationResponseProjection
             notification.RelatedPlanId,
             notification.RelatedCommentId,
             notification.RelatedRecapId,
+            notification.RelatedJoinRequestId,
             notification.ReadAt,
             notification.CreatedAt);
 }

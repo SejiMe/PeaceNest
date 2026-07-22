@@ -70,6 +70,7 @@ public sealed class Endpoint : EndpointWithoutRequest<Response>
                 family.Id,
                 family.Name,
                 family.Description,
+                family.PreferredCurrency,
                 family.CreatedAt,
                 MemberCount = family.Members.Count(member => member.Status == FamilyMemberStatus.Active)
             })
@@ -80,6 +81,7 @@ public sealed class Endpoint : EndpointWithoutRequest<Response>
                 family.Id,
                 family.Name,
                 family.Description,
+                family.PreferredCurrency,
                 membership.Role,
                 family.MemberCount,
                 family.CreatedAt),

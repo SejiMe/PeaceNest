@@ -9,4 +9,5 @@ public sealed record Response(
     FamilyMemberRole InvitedRole,
     FamilyInvitationStatus Status,
     DateTimeOffset ExpiresAt,
-    string InvitationToken);
+    string InvitationToken,
+    string InvitationCode);

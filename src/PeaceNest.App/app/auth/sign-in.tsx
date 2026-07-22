@@ -12,7 +12,7 @@ export default function SignInRoute() {
   const [isSigningIn, setIsSigningIn] = useState(false);
 
   if (session) {
-    return <Redirect href="/tabs/home" />;
+    return <Redirect href="/" />;
   }
 
   async function handleGoogleSignIn() {

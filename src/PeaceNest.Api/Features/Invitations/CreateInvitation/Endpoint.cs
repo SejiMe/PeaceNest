@@ -44,7 +44,7 @@ public sealed class Endpoint : Endpoint<Request, Response>
         Summary(summary =>
         {
             summary.Summary = "Invite a family member.";
-            summary.Description = "Creates an email-bound invitation token for a family workspace.";
+            summary.Description = "Creates an email-bound invitation token for a future delivery channel.";
             summary.Responses[201] = "The family invitation was created.";
             summary.Responses[400] = "The invitation request was invalid.";
             summary.Responses[403] = "The authenticated family member cannot invite members.";
@@ -73,12 +73,14 @@ public sealed class Endpoint : Endpoint<Request, Response>
         await EnsureEmailCanBeInvitedAsync(familyId, invitedEmail, now, ct);
 
         var token = _invitationTokenService.GenerateToken();
+        var invitationCode = _invitationTokenService.GenerateCode();
         var invitation = new FamilyInvitation
         {
             FamilyId = familyId,
             InvitedEmail = invitedEmail,
             InvitedRole = request.InvitedRole,
             TokenHash = _invitationTokenService.HashToken(token),
+            InvitationCodeHash = _invitationTokenService.HashCode(invitationCode),
             Status = FamilyInvitationStatus.Pending,
             ExpiresAt = now.Add(InvitationLifetime),
             CreatedByUserId = user.Id
@@ -97,7 +99,8 @@ public sealed class Endpoint : Endpoint<Request, Response>
                 invitation.InvitedRole,
                 invitation.Status,
                 invitation.ExpiresAt,
-                token),
+                token,
+                invitationCode),
             cancellation: ct);
     }
 

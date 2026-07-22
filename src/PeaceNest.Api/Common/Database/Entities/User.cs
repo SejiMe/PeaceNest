@@ -10,6 +10,10 @@ public sealed class User : IAuditableEntity, ISoftDeletableEntity
 
     public string DisplayName { get; set; } = string.Empty;
 
+    public string? CountryCode { get; set; }
+
+    public DateTimeOffset? OnboardingCompletedAt { get; set; }
+
     public string? AvatarUrl { get; set; }
 
     public string? Timezone { get; set; }
@@ -29,6 +33,16 @@ public sealed class User : IAuditableEntity, ISoftDeletableEntity
     public ICollection<FamilyInvitation> CreatedInvitations { get; } = new List<FamilyInvitation>();
 
     public ICollection<FamilyInvitation> AcceptedInvitations { get; } = new List<FamilyInvitation>();
+
+    public ICollection<FamilyJoinCode> CreatedJoinCodes { get; } = new List<FamilyJoinCode>();
+
+    public ICollection<FamilyJoinCode> RevokedJoinCodes { get; } = new List<FamilyJoinCode>();
+
+    public ICollection<FamilyJoinRequest> FamilyJoinRequests { get; } = new List<FamilyJoinRequest>();
+
+    public ICollection<FamilyJoinRequest> ReviewedFamilyJoinRequests { get; } = new List<FamilyJoinRequest>();
+
+    public ICollection<FamilyRecoveryCode> FamilyRecoveryCodes { get; } = new List<FamilyRecoveryCode>();
 
     public ICollection<FamilyPlan> CreatedPlans { get; } = new List<FamilyPlan>();
 

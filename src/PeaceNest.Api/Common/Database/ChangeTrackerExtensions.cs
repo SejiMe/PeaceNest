@@ -7,12 +7,13 @@ public static class ChangeTrackerExtensions
 {
     public static void ApplyPeaceNestPersistenceConventions(
         this ChangeTracker changeTracker,
-        DateTimeOffset utcNow)
+        DateTimeOffset utcNow,
+        IReadOnlySet<object>? permanentDeletes = null)
     {
         foreach (var entry in changeTracker.Entries())
         {
             ApplyVersion7GuidConvention(entry);
-            ApplySoftDeleteConvention(entry, utcNow);
+            ApplySoftDeleteConvention(entry, utcNow, permanentDeletes);
             ApplyAuditConvention(entry, utcNow);
             ApplyConcurrencyConvention(entry);
         }
@@ -28,9 +29,17 @@ public static class ChangeTrackerExtensions
         }
     }
 
-    private static void ApplySoftDeleteConvention(EntityEntry entry, DateTimeOffset utcNow)
+    private static void ApplySoftDeleteConvention(
+        EntityEntry entry,
+        DateTimeOffset utcNow,
+        IReadOnlySet<object>? permanentDeletes)
     {
         if (entry.State is not EntityState.Deleted || entry.Entity is not ISoftDeletableEntity softDeletable)
+        {
+            return;
+        }
+
+        if (permanentDeletes?.Contains(entry.Entity) is true)
         {
             return;
         }

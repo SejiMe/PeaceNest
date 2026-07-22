@@ -26,6 +26,7 @@ public static class WantOrNeedResponseProjection
             details.EmotionalValueLevel,
             details.DesiredByDate,
             plan.TargetDate,
+            plan.Version,
             plan.CreatedAt,
             plan.UpdatedAt);
     }

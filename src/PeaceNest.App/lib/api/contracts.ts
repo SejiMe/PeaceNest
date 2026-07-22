@@ -53,9 +53,32 @@ export const NotificationType = {
   VoteCast: 3,
   MilestoneCompleted: 4,
   MonthlyRecapReady: 5,
+  FamilyJoinRequestCreated: 6,
+  FamilyJoinRequestApproved: 7,
+  FamilyJoinRequestRejected: 8,
 } as const;
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
+
+export const FamilyJoinCodeStatus = {
+  Active: 0,
+  Revoked: 1,
+  Expired: 2,
+  CapacityReached: 3,
+} as const;
+
+export type FamilyJoinCodeStatus = (typeof FamilyJoinCodeStatus)[keyof typeof FamilyJoinCodeStatus];
+
+export const FamilyJoinRequestStatus = {
+  Pending: 0,
+  Approved: 1,
+  Rejected: 2,
+  Withdrawn: 3,
+  Expired: 4,
+  Cancelled: 5,
+} as const;
+
+export type FamilyJoinRequestStatus = (typeof FamilyJoinRequestStatus)[keyof typeof FamilyJoinRequestStatus];
 
 export const RecapPeriodType = {
   Monthly: 0,
@@ -68,6 +91,8 @@ export type CurrentUserResponse = {
   supabaseUserId: string;
   email: string;
   displayName: string;
+  countryCode?: string | null;
+  onboardingCompletedAt?: string | null;
   avatarUrl?: string | null;
   timezone?: string | null;
   lastSeenAt?: string | null;
@@ -76,6 +101,7 @@ export type CurrentUserResponse = {
 export type FamilyMembershipResponse = {
   familyId: string;
   familyName: string;
+  preferredCurrency: SupportedCurrency;
   role: FamilyMemberRole;
   status: FamilyMemberStatus;
 };
@@ -89,6 +115,7 @@ export type FamilyWorkspaceResponse = {
   id: string;
   name: string;
   description?: string | null;
+  preferredCurrency: SupportedCurrency;
   currentUserRole: FamilyMemberRole;
   memberCount: number;
   createdAt: string;
@@ -101,9 +128,19 @@ export type ListFamiliesResponse = {
 export type CreateFamilyRequest = {
   name: string;
   description?: string | null;
+  preferredCurrency: SupportedCurrency;
 };
 
 export type CreateFamilyResponse = FamilyWorkspaceResponse;
+
+export type UpdatePreferredCurrencyRequest = {
+  preferredCurrency: SupportedCurrency;
+};
+
+export type UpdatePreferredCurrencyResponse = {
+  familyId: string;
+  preferredCurrency: SupportedCurrency;
+};
 
 export type WantOrNeedResponse = {
   id: string;
@@ -123,6 +160,7 @@ export type WantOrNeedResponse = {
   emotionalValueLevel: ScoreLevel;
   desiredByDate?: string | null;
   targetDate?: string | null;
+  version: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -154,6 +192,14 @@ export type GetWantOrNeedResponse = {
   wantOrNeed: WantOrNeedResponse;
 };
 
+export type UpdateWantOrNeedRequest = Omit<CreateWantOrNeedRequest, 'progressPercent'> & {
+  version: number;
+};
+
+export type UpdateWantOrNeedResponse = {
+  wantOrNeed: WantOrNeedResponse;
+};
+
 export type MilestoneStepResponse = {
   id: string;
   title: string;
@@ -180,6 +226,7 @@ export type MilestoneResponse = {
   reflectionPrompt?: string | null;
   includeInRecap: boolean;
   steps: MilestoneStepResponse[];
+  version: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -214,6 +261,149 @@ export type CreateMilestoneResponse = {
 export type GetMilestoneResponse = {
   milestone: MilestoneResponse;
 };
+
+export type UpdateMilestoneStepRequest = {
+  id?: string | null;
+  title: string;
+  description?: string | null;
+  sortOrder: number;
+};
+
+export type UpdateMilestoneRequest = Omit<CreateMilestoneRequest, 'progressPercent' | 'steps'> & {
+  steps: UpdateMilestoneStepRequest[];
+  version: number;
+};
+
+export type UpdateMilestoneResponse = {
+  milestone: MilestoneResponse;
+};
+
+export type CompleteProfileRequest = {
+  displayName: string;
+  countryCode: string;
+};
+
+export type CompleteProfileResponse = {
+  id: string;
+  email: string;
+  displayName: string;
+  countryCode: string;
+  onboardingCompletedAt: string;
+};
+
+export type AcceptInvitationRequest = {
+  invitationToken?: string | null;
+  invitationCode?: string | null;
+};
+
+export type AcceptInvitationResponse = {
+  invitationId: string;
+  familyId: string;
+  familyName: string;
+  role: FamilyMemberRole;
+  membershipStatus: FamilyMemberStatus;
+  acceptedAt: string;
+};
+
+export type CreateInvitationRequest = {
+  invitedEmail: string;
+  invitedRole: FamilyMemberRole;
+};
+
+export type CreateInvitationResponse = {
+  id: string;
+  familyId: string;
+  invitedEmail: string;
+  invitedRole: FamilyMemberRole;
+  status: number;
+  expiresAt: string;
+  invitationToken: string;
+  invitationCode: string;
+};
+
+export type GenerateFamilyJoinCodeResponse = {
+  id: string;
+  code: string;
+  status: FamilyJoinCodeStatus;
+  requestCount: number;
+  maxRequests: number;
+  createdAt: string;
+  expiresAt: string;
+};
+
+export type GetFamilyJoinCodeResponse = {
+  hasActiveCode: boolean;
+  id?: string | null;
+  status?: FamilyJoinCodeStatus | null;
+  requestCount?: number | null;
+  maxRequests?: number | null;
+  createdAt?: string | null;
+  expiresAt?: string | null;
+};
+
+export type FamilyJoinRequestResponse = {
+  id: string;
+  familyId: string;
+  familyName: string;
+  requesterDisplayName: string;
+  maskedRequesterEmail: string;
+  requesterAvatarUrl?: string | null;
+  status: FamilyJoinRequestStatus;
+  approvedRole?: FamilyMemberRole | null;
+  createdAt: string;
+  expiresAt: string;
+  reviewedAt?: string | null;
+};
+
+export type CreateFamilyJoinRequestResponse = {
+  joinRequest: FamilyJoinRequestResponse;
+  wasAlreadyPending: boolean;
+};
+
+export type ListFamilyJoinRequestsResponse = {
+  joinRequests: FamilyJoinRequestResponse[];
+};
+
+export type FamilyJoinRequestActionResponse = {
+  joinRequest: FamilyJoinRequestResponse;
+};
+
+export type LeaveFamilyResponse = {
+  familyId: string;
+  recoveryAvailable: boolean;
+  recoveryCode?: string | null;
+  recoveryExpiresAt?: string | null;
+};
+
+export type RecoverFamilyRequest = {
+  code: string;
+};
+
+export type RecoverFamilyResponse = {
+  familyId: string;
+  familyName: string;
+  preferredCurrency: SupportedCurrency;
+  role: FamilyMemberRole;
+  recoveredAt: string;
+};
+
+export const supportedCurrencies = ['PHP', 'SGD', 'USD'] as const;
+export type SupportedCurrency = (typeof supportedCurrencies)[number];
+
+export function suggestedCurrency(countryCode?: string | null): SupportedCurrency {
+  if (countryCode === 'SG') return 'SGD';
+  if (countryCode === 'US') return 'USD';
+  return 'PHP';
+}
+
+export function formatEstimatedCost(amount: number, currency?: string | null) {
+  const resolvedCurrency = currency ?? 'PHP';
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: resolvedCurrency }).format(amount);
+  } catch {
+    return `${resolvedCurrency} ${amount.toLocaleString()}`;
+  }
+}
 
 export type PlanNoteResponse = {
   id: string;
@@ -285,6 +475,7 @@ export type NotificationResponse = {
   relatedPlanId?: string | null;
   relatedCommentId?: string | null;
   relatedRecapId?: string | null;
+  relatedJoinRequestId?: string | null;
   readAt?: string | null;
   createdAt: string;
 };
@@ -409,8 +600,33 @@ export function notificationTypeLabel(type: NotificationType) {
       return 'Milestone completed';
     case NotificationType.MonthlyRecapReady:
       return 'Recap ready';
+    case NotificationType.FamilyJoinRequestCreated:
+      return 'Join request';
+    case NotificationType.FamilyJoinRequestApproved:
+      return 'Request approved';
+    case NotificationType.FamilyJoinRequestRejected:
+      return 'Request updated';
     default:
       return 'Family update';
+  }
+}
+
+export function joinRequestStatusLabel(status: FamilyJoinRequestStatus) {
+  switch (status) {
+    case FamilyJoinRequestStatus.Pending:
+      return 'Pending review';
+    case FamilyJoinRequestStatus.Approved:
+      return 'Approved';
+    case FamilyJoinRequestStatus.Rejected:
+      return 'Not approved';
+    case FamilyJoinRequestStatus.Withdrawn:
+      return 'Withdrawn';
+    case FamilyJoinRequestStatus.Expired:
+      return 'Expired';
+    case FamilyJoinRequestStatus.Cancelled:
+      return 'Cancelled';
+    default:
+      return 'Updated';
   }
 }
 
@@ -438,6 +654,10 @@ export function planStatusLabel(status: PlanStatus) {
 
 export function canCastPlanVotes(role: FamilyMemberRole) {
   return role !== FamilyMemberRole.Viewer;
+}
+
+export function canUpdateFamilyPlans(role: FamilyMemberRole) {
+  return role === FamilyMemberRole.Owner || role === FamilyMemberRole.ParentAdmin || role === FamilyMemberRole.AdultMember;
 }
 
 export function voteValueLabel(voteValue: VoteValue) {

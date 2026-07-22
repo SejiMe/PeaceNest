@@ -9,7 +9,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/ui/state';
 import { Text } from '@/components/ui/text';
 import { usePrimaryFamily } from '@/hooks/use-primary-family';
 import { useWantsAndNeeds } from '@/hooks/use-wants-and-needs';
-import { kindLabel, scoreLabel, WantNeedKind, type WantOrNeedResponse } from '@/lib/api/contracts';
+import { formatEstimatedCost, kindLabel, scoreLabel, WantNeedKind, type WantOrNeedResponse } from '@/lib/api/contracts';
 import { useAuth } from '@/lib/auth/auth-provider';
 import { cn } from '@/lib/utils';
 
@@ -137,7 +137,7 @@ function WantNeedCard({ item }: { item: WantOrNeedResponse }) {
           <Badge label={scoreLabel(item.urgencyLevel)} tone={item.urgencyLevel === 2 ? 'gold' : 'muted'} />
           {item.estimatedCostAmount ? (
             <Badge
-              label={`${item.estimatedCostCurrency ?? 'USD'} ${Number(item.estimatedCostAmount).toLocaleString()}`}
+              label={formatEstimatedCost(Number(item.estimatedCostAmount), item.estimatedCostCurrency)}
               tone="muted"
             />
           ) : null}

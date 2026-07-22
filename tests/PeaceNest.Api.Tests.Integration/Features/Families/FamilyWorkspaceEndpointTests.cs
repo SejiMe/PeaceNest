@@ -16,6 +16,26 @@ namespace PeaceNest.Api.Tests.Integration.Features.Families;
 public sealed class FamilyWorkspaceEndpointTests
 {
     [Fact]
+    public async Task CreateFamily_RequiresCompletedProfile()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            TestJwtTokenFactory.CreateSupabaseAccessToken(
+                subject: "10101010-1010-1010-1010-101010101010",
+                email: "new@example.test",
+                includeCompletedProfile: false));
+
+        using var response = await client.PostAsJsonAsync(
+            "/families",
+            new CreateFamilyRequest("New Nest", null, "PHP"));
+
+        Assert.Equal((HttpStatusCode)422, response.StatusCode);
+        await ProblemDetailsAssert.HasProblemDetailsAsync(response, 422, ErrorCodes.DomainRuleViolated);
+    }
+
+    [Fact]
     public async Task CreateFamily_CreatesWorkspaceAndOwnerMembership()
     {
         using var factory = TestingApiFactory.WithIsolatedDatabase();

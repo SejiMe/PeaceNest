@@ -45,7 +45,7 @@ export function useGenerateMonthlyRecap(familyId: string, year: number, month: n
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.monthlyRecap(familyId, year, month) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications(familyId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
     },
   });
 }

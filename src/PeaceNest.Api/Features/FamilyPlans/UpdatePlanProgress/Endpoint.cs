@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using PeaceNest.Api.Common.Auth;
 using PeaceNest.Api.Common.Database;
+using PeaceNest.Api.Common.Database.Entities;
 using PeaceNest.Api.Common.Errors;
 using PeaceNest.Api.Common.RateLimiting;
 
@@ -69,6 +70,11 @@ public sealed class Endpoint : Endpoint<Request, Response>
         if (plan is null)
         {
             throw new NotFoundAppException("Family plan was not found.");
+        }
+
+        if (plan.Status != PlanStatus.Active)
+        {
+            throw new DomainRuleAppException("Completed and archived family plans are read-only.");
         }
 
         plan.ProgressPercent = request.ProgressPercent;

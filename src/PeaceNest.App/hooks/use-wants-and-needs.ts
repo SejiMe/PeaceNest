@@ -5,6 +5,8 @@ import type {
   CreateWantOrNeedResponse,
   GetWantOrNeedResponse,
   ListWantsAndNeedsResponse,
+  UpdateWantOrNeedRequest,
+  UpdateWantOrNeedResponse,
 } from '@/lib/api/contracts';
 import { queryKeys } from '@/lib/api/query-keys';
 
@@ -14,6 +16,22 @@ export function useWantsAndNeeds(familyId: string | null | undefined) {
     queryFn: () => apiFetch<ListWantsAndNeedsResponse>(`/families/${familyId}/wants-needs`),
     enabled: Boolean(familyId),
     staleTime: 30_000,
+  });
+}
+
+export function useUpdateWantOrNeed(familyId: string, planId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: UpdateWantOrNeedRequest) =>
+      apiFetch<UpdateWantOrNeedResponse>(`/families/${familyId}/wants-needs/${planId}`, {
+        method: 'PUT',
+        body: request,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.wantsAndNeeds(familyId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.wantOrNeed(familyId, planId) });
+    },
   });
 }
 

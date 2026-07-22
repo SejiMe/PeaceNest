@@ -16,6 +16,9 @@ using GetMilestoneResponse = PeaceNest.Api.Features.FamilyMilestones.GetMileston
 using ListMilestonesResponse = PeaceNest.Api.Features.FamilyMilestones.ListMilestones.Response;
 using UpdateMilestoneStepCompletionRequest = PeaceNest.Api.Features.FamilyMilestones.UpdateMilestoneStepCompletion.Request;
 using UpdateMilestoneStepCompletionResponse = PeaceNest.Api.Features.FamilyMilestones.UpdateMilestoneStepCompletion.Response;
+using UpdateMilestoneRequest = PeaceNest.Api.Features.FamilyMilestones.UpdateMilestone.Request;
+using UpdateMilestoneResponse = PeaceNest.Api.Features.FamilyMilestones.UpdateMilestone.Response;
+using UpdateMilestoneStepRequest = PeaceNest.Api.Features.FamilyMilestones.UpdateMilestone.UpdateMilestoneStepRequest;
 
 namespace PeaceNest.Api.Tests.Integration.Features.FamilyMilestones;
 
@@ -280,6 +283,66 @@ public sealed class FamilyMilestonesEndpointTests
             response,
             403,
             ErrorCodes.AuthorizationDenied);
+    }
+
+    [Fact]
+    public async Task UpdateMilestone_ReconcilesChecklistWithoutLosingCompletionHistory()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "abababab-1111-1111-1111-abababababab",
+            "parent@example.test");
+        var family = await CreateFamilyAsync(client, "Growing Nest");
+        var created = await CreateMilestoneAsync(
+            client,
+            family.Id,
+            NewCreateRequest("Family dinner", [new("Choose day", null, 1), new("Pick recipe", null, 2)]));
+        var completedStep = created.Milestone.Steps.ElementAt(0);
+        var removedStep = created.Milestone.Steps.ElementAt(1);
+
+        using var completionResponse = await client.PutAsJsonAsync(
+            $"/families/{family.Id}/milestones/{created.Milestone.Id}/steps/{completedStep.Id}/completion",
+            new UpdateMilestoneStepCompletionRequest(true));
+        var afterCompletion = await completionResponse.Content.ReadFromJsonAsync<UpdateMilestoneStepCompletionResponse>();
+        Assert.NotNull(afterCompletion);
+
+        var request = new UpdateMilestoneRequest(
+            "Sunday family dinner",
+            "Updated milestone.",
+            PriorityRank: 1,
+            TargetDate: new DateOnly(2026, 12, 31),
+            MilestoneType: "habit",
+            CelebrationNotes: null,
+            ReflectionPrompt: null,
+            IncludeInRecap: true,
+            [
+                new UpdateMilestoneStepRequest(completedStep.Id, "Choose every Sunday", null, 1),
+                new UpdateMilestoneStepRequest(null, "Invite everyone", null, 2)
+            ],
+            afterCompletion.Milestone.Version);
+
+        using var updateResponse = await client.PutAsJsonAsync(
+            $"/families/{family.Id}/milestones/{created.Milestone.Id}",
+            request);
+        var updated = await updateResponse.Content.ReadFromJsonAsync<UpdateMilestoneResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        Assert.NotNull(updated);
+        Assert.Equal("Sunday family dinner", updated.Milestone.Title);
+        Assert.Equal(2, updated.Milestone.Steps.Count);
+        var preserved = updated.Milestone.Steps.Single(step => step.Id == completedStep.Id);
+        Assert.True(preserved.IsCompleted);
+        Assert.Equal("Choose every Sunday", preserved.Title);
+        Assert.DoesNotContain(updated.Milestone.Steps, step => step.Id == removedStep.Id);
+        Assert.Contains(updated.Milestone.Steps, step => step.Id != completedStep.Id && step.Id != Guid.Empty);
+
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PeaceNestDbContext>();
+        var softDeleted = await dbContext.GoalSteps
+            .IgnoreQueryFilters()
+            .SingleAsync(step => step.Id == removedStep.Id);
+        Assert.NotNull(softDeleted.DeletedAt);
     }
 
     private static CreateMilestoneRequest NewCreateRequest(

@@ -6,6 +6,7 @@
     "src/PeaceNest.App"
   ],
   "scripts": {
+    "tunnel:app": "npm --prefix src/PeaceNest.App run start -- --tunnel",
     "start": "npm --prefix src/PeaceNest.App run start",
     "android": "npm --prefix src/PeaceNest.App run android",
     "web": "npm --prefix src/PeaceNest.App run web",

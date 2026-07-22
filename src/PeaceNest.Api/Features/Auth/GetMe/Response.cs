@@ -11,6 +11,8 @@ public sealed record CurrentUserResponse(
     Guid SupabaseUserId,
     string Email,
     string DisplayName,
+    string? CountryCode,
+    DateTimeOffset? OnboardingCompletedAt,
     string? AvatarUrl,
     string? Timezone,
     DateTimeOffset? LastSeenAt);
@@ -18,5 +20,6 @@ public sealed record CurrentUserResponse(
 public sealed record FamilyMembershipResponse(
     Guid FamilyId,
     string FamilyName,
+    string PreferredCurrency,
     FamilyMemberRole Role,
     FamilyMemberStatus Status);

@@ -52,6 +52,9 @@ public static class PeaceNestDatabaseExtensions
         npgsqlOptions.MapEnum<FamilyMemberRole>("family_member_role");
         npgsqlOptions.MapEnum<FamilyMemberStatus>("family_member_status");
         npgsqlOptions.MapEnum<FamilyInvitationStatus>("family_invitation_status");
+        npgsqlOptions.MapEnum<FamilyJoinCodeStatus>("family_join_code_status");
+        npgsqlOptions.MapEnum<FamilyJoinRequestStatus>("family_join_request_status");
+        npgsqlOptions.MapEnum<FamilyRecoveryCodeStatus>("family_recovery_code_status");
         npgsqlOptions.MapEnum<PlanType>("plan_type");
         npgsqlOptions.MapEnum<PlanStatus>("plan_status");
         npgsqlOptions.MapEnum<WantNeedKind>("want_need_kind");

@@ -18,6 +18,7 @@ public sealed record MilestoneResponse(
     string? ReflectionPrompt,
     bool IncludeInRecap,
     IReadOnlyCollection<MilestoneStepResponse> Steps,
+    int Version,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);
 

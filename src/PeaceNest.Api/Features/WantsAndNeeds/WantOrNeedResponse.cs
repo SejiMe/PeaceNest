@@ -20,5 +20,6 @@ public sealed record WantOrNeedResponse(
     ScoreLevel EmotionalValueLevel,
     DateOnly? DesiredByDate,
     DateOnly? TargetDate,
+    int Version,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);

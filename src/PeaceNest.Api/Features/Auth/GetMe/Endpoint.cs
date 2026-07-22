@@ -45,6 +45,7 @@ public sealed class Endpoint : EndpointWithoutRequest<Response>
             .Select(member => new FamilyMembershipResponse(
                 member.FamilyId,
                 member.Family.Name,
+                member.Family.PreferredCurrency,
                 member.Role,
                 member.Status))
             .ToListAsync(ct);
@@ -56,6 +57,8 @@ public sealed class Endpoint : EndpointWithoutRequest<Response>
                     user.SupabaseUserId,
                     user.Email,
                     user.DisplayName,
+                    user.CountryCode,
+                    user.OnboardingCompletedAt,
                     user.AvatarUrl,
                     user.Timezone,
                     user.LastSeenAt),

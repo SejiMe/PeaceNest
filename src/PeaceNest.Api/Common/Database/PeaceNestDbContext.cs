@@ -7,6 +7,7 @@ namespace PeaceNest.Api.Common.Database;
 public sealed class PeaceNestDbContext : DbContext
 {
     private readonly TimeProvider _timeProvider;
+    private readonly HashSet<object> _permanentDeletes = new(ReferenceEqualityComparer.Instance);
 
     public PeaceNestDbContext(
         DbContextOptions<PeaceNestDbContext> options,
@@ -23,6 +24,12 @@ public sealed class PeaceNestDbContext : DbContext
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
 
     public DbSet<FamilyInvitation> FamilyInvitations => Set<FamilyInvitation>();
+
+    public DbSet<FamilyJoinCode> FamilyJoinCodes => Set<FamilyJoinCode>();
+
+    public DbSet<FamilyJoinRequest> FamilyJoinRequests => Set<FamilyJoinRequest>();
+
+    public DbSet<FamilyRecoveryCode> FamilyRecoveryCodes => Set<FamilyRecoveryCode>();
 
     public DbSet<PlanCategory> PlanCategories => Set<PlanCategory>();
 
@@ -61,15 +68,37 @@ public sealed class PeaceNestDbContext : DbContext
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
-        ChangeTracker.ApplyPeaceNestPersistenceConventions(_timeProvider.GetUtcNow());
-        return base.SaveChanges(acceptAllChangesOnSuccess);
+        ChangeTracker.ApplyPeaceNestPersistenceConventions(_timeProvider.GetUtcNow(), _permanentDeletes);
+        var result = base.SaveChanges(acceptAllChangesOnSuccess);
+        _permanentDeletes.Clear();
+        return result;
     }
 
     public override Task<int> SaveChangesAsync(
         bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = default)
     {
-        ChangeTracker.ApplyPeaceNestPersistenceConventions(_timeProvider.GetUtcNow());
-        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        ChangeTracker.ApplyPeaceNestPersistenceConventions(_timeProvider.GetUtcNow(), _permanentDeletes);
+        return SaveAndClearPermanentDeletesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    internal void RemovePermanentlyRange(IEnumerable<object> entities)
+    {
+        var materialized = entities.ToArray();
+        foreach (var entity in materialized)
+        {
+            _permanentDeletes.Add(entity);
+        }
+
+        RemoveRange(materialized);
+    }
+
+    private async Task<int> SaveAndClearPermanentDeletesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken)
+    {
+        var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        _permanentDeletes.Clear();
+        return result;
     }
 }

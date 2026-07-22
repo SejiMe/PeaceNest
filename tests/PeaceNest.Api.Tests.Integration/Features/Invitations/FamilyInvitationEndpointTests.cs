@@ -20,7 +20,7 @@ namespace PeaceNest.Api.Tests.Integration.Features.Invitations;
 public sealed class FamilyInvitationEndpointTests
 {
     [Fact]
-    public async Task CreateInvitation_AsOwnerStoresOnlyTokenHash()
+    public async Task CreateInvitation_AsOwnerStoresOnlyCredentialHashes()
     {
         using var factory = TestingApiFactory.WithIsolatedDatabase();
         using var ownerClient = CreateAuthenticatedClient(
@@ -41,6 +41,7 @@ public sealed class FamilyInvitationEndpointTests
         Assert.Equal("invited@example.test", payload.InvitedEmail);
         Assert.Equal(FamilyInvitationStatus.Pending, payload.Status);
         Assert.NotEmpty(payload.InvitationToken);
+        Assert.NotEmpty(payload.InvitationCode);
 
         using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PeaceNestDbContext>();
@@ -49,7 +50,10 @@ public sealed class FamilyInvitationEndpointTests
 
         Assert.NotEqual(payload.InvitationToken, invitation.TokenHash);
         Assert.Equal(tokenService.HashToken(payload.InvitationToken), invitation.TokenHash);
+        Assert.NotEqual(payload.InvitationCode, invitation.InvitationCodeHash);
+        Assert.Equal(tokenService.HashCode(payload.InvitationCode), invitation.InvitationCodeHash);
     }
+
 
     [Fact]
     public async Task CreateInvitation_RejectsMemberWithoutInvitePermission()
@@ -118,7 +122,7 @@ public sealed class FamilyInvitationEndpointTests
 
         using var response = await invitedClient.PostAsJsonAsync(
             "/family-invitations/accept",
-            new AcceptInvitationRequest(invitation.InvitationToken));
+            new AcceptInvitationRequest(InvitationCode: invitation.InvitationCode));
         var payload = await response.Content.ReadFromJsonAsync<AcceptInvitationResponse>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -255,4 +259,5 @@ public sealed class FamilyInvitationEndpointTests
 
         return client;
     }
+
 }

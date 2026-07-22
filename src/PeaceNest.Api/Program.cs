@@ -3,6 +3,8 @@ using FastEndpoints.Swagger;
 using PeaceNest.Api.Common.Auth;
 using PeaceNest.Api.Common.Database;
 using PeaceNest.Api.Common.Errors;
+using PeaceNest.Api.Common.FamilyRecovery;
+using PeaceNest.Api.Common.JoinCodes;
 using PeaceNest.Api.Common.RateLimiting;
 using PeaceNest.Api.Common.Security;
 using Scalar.AspNetCore;
@@ -17,6 +19,8 @@ builder.Services.AddScoped<FamilyMembershipAuthorizer>();
 builder.Services.AddSingleton<InvitationTokenService>();
 builder.Services.AddPeaceNestAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddPeaceNestDatabase(builder.Configuration, builder.Environment);
+builder.Services.AddPeaceNestJoinCodes(builder.Configuration);
+builder.Services.AddPeaceNestFamilyRecovery(builder.Configuration);
 builder.Services.AddPeaceNestRateLimiting(builder.Configuration);
 builder.Services
     .AddFastEndpoints()
@@ -32,6 +36,20 @@ builder.Services
     });
 
 builder.Services.AddHealthChecks();
+
+if (builder.Environment.IsDevelopment() || builder.Environment.IsStaging())
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(name: "AllowAllOrigin",
+            policy =>
+            {
+                policy.AllowAnyOrigin();
+                policy.AllowAnyHeader();
+                policy.AllowAnyMethod();
+            });
+    });
+}
 
 var app = builder.Build();
 
@@ -68,6 +86,12 @@ if (app.Environment.IsProduction())
 }
 
 app.UseRouting();
+
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+{
+    app.UseCors("AllowAllOrigin");
+}
+
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

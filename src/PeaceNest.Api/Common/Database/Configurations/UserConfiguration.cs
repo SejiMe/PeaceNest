@@ -16,6 +16,8 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.SupabaseUserId).HasColumnName("supabase_user_id");
         builder.Property(user => user.Email).HasColumnName("email").HasColumnType("citext").HasMaxLength(320);
         builder.Property(user => user.DisplayName).HasColumnName("display_name").HasMaxLength(200);
+        builder.Property(user => user.CountryCode).HasColumnName("country_code").HasMaxLength(2).IsFixedLength();
+        builder.Property(user => user.OnboardingCompletedAt).HasColumnName("onboarding_completed_at");
         builder.Property(user => user.AvatarUrl).HasColumnName("avatar_url").HasMaxLength(2048);
         builder.Property(user => user.Timezone).HasColumnName("timezone").HasMaxLength(100);
         builder.Property(user => user.LastSeenAt).HasColumnName("last_seen_at");

@@ -1,4 +1,4 @@
-import { Redirect, router } from 'expo-router';
+import { Redirect } from 'expo-router';
 import { Alert, View } from 'react-native';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,35 +7,16 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/state';
 import { Text } from '@/components/ui/text';
 import { useNotifications, useMarkNotificationRead } from '@/hooks/use-notifications';
-import { usePrimaryFamily } from '@/hooks/use-primary-family';
 import { notificationTypeLabel, type NotificationResponse } from '@/lib/api/contracts';
 import { useAuth } from '@/lib/auth/auth-provider';
 
 export default function NotificationsRoute() {
   const { session } = useAuth();
-  const { currentUser, primaryFamily } = usePrimaryFamily();
-  const notifications = useNotifications(primaryFamily?.familyId);
-  const markRead = useMarkNotificationRead(primaryFamily?.familyId ?? 'missing-family');
+  const notifications = useNotifications(Boolean(session));
+  const markRead = useMarkNotificationRead();
 
   if (!session) {
     return <Redirect href="/auth/sign-in" />;
-  }
-
-  if (currentUser.isLoading) {
-    return <LoadingState />;
-  }
-
-  if (!primaryFamily) {
-    return (
-      <Screen>
-        <EmptyState
-          title="Start with your family space"
-          message="Create a family workspace before opening family notifications."
-          actionLabel="Set up family"
-          onAction={() => router.push('/family/setup')}
-        />
-      </Screen>
-    );
   }
 
   async function handleMarkRead(notificationId: string) {
@@ -50,7 +31,7 @@ export default function NotificationsRoute() {
     <Screen scroll>
       <View className="gap-2">
         <Text variant="title">Notifications</Text>
-        <Text className="text-peacenest-muted">{primaryFamily.familyName}</Text>
+        <Text className="text-peacenest-muted">Updates meant for you across your family spaces.</Text>
       </View>
 
       {notifications.data ? (

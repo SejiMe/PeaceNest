@@ -6,4 +6,5 @@ public static class AuthClaimTypes
     public const string Email = "email";
     public const string Role = "role";
     public const string AppMetadata = "app_metadata";
+    public const string UserMetadata = "user_metadata";
 }

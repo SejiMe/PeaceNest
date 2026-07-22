@@ -16,6 +16,8 @@ public sealed class FamilyInvitation : IUsesVersion7Guid, IAuditableEntity
 
     public string TokenHash { get; set; } = string.Empty;
 
+    public string? InvitationCodeHash { get; set; }
+
     public FamilyInvitationStatus Status { get; set; } = FamilyInvitationStatus.Pending;
 
     public DateTimeOffset ExpiresAt { get; set; }

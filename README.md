@@ -84,6 +84,8 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_<key>
 EXPO_PUBLIC_ENABLE_DEV_AUTH_TOKEN=true
 ```
 
+For Android emulator development, the app maps `localhost` to the emulator's host address. If you are using a physical device or Expo tunnel, set `EXPO_PUBLIC_API_BASE_URL` to a backend URL your device can reach, such as your computer's LAN IP, ngrok, or a dev tunnel. The Expo `exp.direct` URL is for the app bundle, not the .NET API.
+
 ### 3. Configure Backend User Secrets
 
 From the repository root:

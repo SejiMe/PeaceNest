@@ -30,7 +30,7 @@ export default function HomeRoute() {
   const { currentUser, primaryFamily } = usePrimaryFamily();
   const wantsAndNeeds = useWantsAndNeeds(primaryFamily?.familyId);
   const milestones = useMilestones(primaryFamily?.familyId);
-  const notifications = useNotifications(primaryFamily?.familyId);
+  const notifications = useNotifications(Boolean(session));
   const period = currentMonthlyRecapPeriod();
   const monthlyRecap = useMonthlyRecap(primaryFamily?.familyId, period.year, period.month);
   const missingRecap = monthlyRecap.error instanceof ApiError && monthlyRecap.error.status === 404;
@@ -79,8 +79,8 @@ export default function HomeRoute() {
           <EmptyState
             title="Start your family space"
             message="Create or join a family workspace so everyone can plan from one calm place."
-            actionLabel="Set up family"
-            onAction={() => router.push('/family/setup')}
+            actionLabel="Choose family path"
+            onAction={() => router.push('/family/choose')}
           />
         )
       ) : null}
@@ -88,7 +88,8 @@ export default function HomeRoute() {
       {currentUser.data?.familyMemberships.length ? (
         <View className="gap-3">
           <Button label="Add family plan" onPress={() => router.push('/wants-needs/create')} />
-          <Button label="Invite family" onPress={() => router.push('/family/invite')} variant="secondary" />
+          <Button label="Manage family access" onPress={() => router.push('/family/invite')} variant="secondary" />
+          <Button label="Family settings" onPress={() => router.push('/settings/family')} variant="secondary" />
         </View>
       ) : null}
 

@@ -16,7 +16,7 @@ Required for development and production:
 
 | Variable | Required | Example | Notes |
 | --- | --- | --- | --- |
-| `EXPO_PUBLIC_API_BASE_URL` | Yes | `http://localhost:5000` | Use the deployed backend URL in production. |
+| `EXPO_PUBLIC_API_BASE_URL` | Yes | `http://localhost:5000` | Use the deployed backend URL in production. Android emulators map local backend URLs automatically; physical devices and Expo tunnels need a reachable backend LAN, ngrok, or dev tunnel URL. Do not use the Expo `exp.direct` app URL for the backend API. |
 | `EXPO_PUBLIC_SUPABASE_URL` | Yes | `https://<project-ref>.supabase.co` | Supabase Project URL. |
 | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes | `sb_publishable_<key>` | Frontend-safe Supabase publishable key only. |
 | `EXPO_PUBLIC_ENABLE_DEV_AUTH_TOKEN` | Dev only | `true` | Set to `false` or omit for production builds. |
@@ -43,6 +43,14 @@ Equivalent environment variable names:
 | `Authentication__Supabase__ProjectUrl` | Yes | `https://<project-ref>.supabase.co` | Required for Supabase JWT validation. |
 | `Authentication__Supabase__Audience` | Yes | `authenticated` | Defaults to `authenticated` in config, but set it explicitly per environment. |
 | `Database__EnableSensitiveDataLogging` | Optional dev only | `true` | Do not enable in production. |
+| `JoinCodes__LifetimeMinutes` | Optional | `15` | Backend-owned temporary code lifetime. |
+| `JoinCodes__RequestLifetimeDays` | Optional | `7` | Backend-owned pending request review window. |
+| `JoinCodes__MaxRequestsPerCode` | Optional | `10` | Maximum distinct requests created by one code. |
+| `FamilyRecovery__LifetimeDays` | Optional | `30` | Sole-creator recovery window before permanent deletion. |
+| `FamilyRecovery__SweepIntervalMinutes` | Optional | `60` | Delay between expired-workspace purge sweeps. |
+| `FamilyRecovery__ClaimLeaseMinutes` | Optional | `10` | Time before a failed purge claim may be retried. |
+| `FamilyRecovery__BatchSize` | Optional | `20` | Maximum expired workspaces claimed per sweep. |
+| `FamilyRecovery__WorkerEnabled` | Optional | `true` | Enables the backend purge worker. Keep enabled in production after applying the migration. |
 | `ASPNETCORE_ENVIRONMENT` | Optional dev | `Development` | Controls dev-only behavior such as Scalar availability. |
 
 For local Docker runs, copy `src/PeaceNest.Api/.env.example` to `src/PeaceNest.Api/.env` and fill the same double-underscore variables.
@@ -64,6 +72,8 @@ Required for Railway or any production backend host:
 | `Authentication__Supabase__Audience` | Yes | `authenticated` | Must match Supabase JWT audience. |
 | `ASPNETCORE_ENVIRONMENT` | Yes | `Production` | Enables production behavior. |
 | `PORT` | Host-provided | `8080` | Railway provides this. Dockerfile falls back to `8080`. |
+
+The family recovery worker is enabled by default. Apply the corresponding database migration before deploying code that starts the worker. Disable it temporarily with `FamilyRecovery__WorkerEnabled=false` only during a coordinated migration rollout.
 
 Production must not use automatic startup migrations. Apply migrations deliberately before deployment:
 

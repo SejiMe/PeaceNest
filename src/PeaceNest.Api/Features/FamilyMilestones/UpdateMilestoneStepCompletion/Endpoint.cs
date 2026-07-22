@@ -72,6 +72,11 @@ public sealed class Endpoint : Endpoint<Request, Response>
             throw new NotFoundAppException("Family milestone was not found.");
         }
 
+        if (milestone.Status != PlanStatus.Active)
+        {
+            throw new DomainRuleAppException("Completed and archived Family Milestones are read-only.");
+        }
+
         var step = milestone.GoalSteps.SingleOrDefault(candidate => candidate.Id == stepId && candidate.DeletedAt is null);
 
         if (step is null)

@@ -25,11 +25,16 @@ Authentication__Supabase__Audience=authenticated
 ASPNETCORE_ENVIRONMENT=Production
 ```
 
+Optional join-policy overrides use `JoinCodes__LifetimeMinutes`, `JoinCodes__RequestLifetimeDays`, and `JoinCodes__MaxRequestsPerCode`. Defaults are 15 minutes, 7 days, and 10 distinct requests.
+
+Family recovery defaults to a 30-day recovery window with hourly purge sweeps. `FamilyRecovery__LifetimeDays`, `FamilyRecovery__SweepIntervalMinutes`, `FamilyRecovery__ClaimLeaseMinutes`, `FamilyRecovery__BatchSize`, and `FamilyRecovery__WorkerEnabled` may be overridden. Apply the recovery migration before enabling the worker in a deployed release.
+
 Do not set or commit Supabase service-role keys for this API. The frontend must send Supabase access tokens through:
 
 ```txt
 Authorization: Bearer <supabase_access_token>
 ```
+
 
 ## Health Check
 

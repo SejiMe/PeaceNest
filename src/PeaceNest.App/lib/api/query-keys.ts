@@ -7,7 +7,10 @@ export const queryKeys = {
   milestone: (familyId: string, planId: string) => ['families', familyId, 'milestones', planId] as const,
   planNotes: (familyId: string, planId: string) => ['families', familyId, 'plans', planId, 'notes'] as const,
   planVotes: (familyId: string, planId: string) => ['families', familyId, 'plans', planId, 'votes'] as const,
-  notifications: (familyId: string) => ['families', familyId, 'notifications'] as const,
+  notifications: ['notifications'] as const,
+  familyJoinCode: (familyId: string) => ['families', familyId, 'join-code'] as const,
+  familyJoinRequests: (familyId: string) => ['families', familyId, 'join-requests'] as const,
+  myFamilyJoinRequests: ['family-join-requests', 'mine'] as const,
   monthlyRecap: (familyId: string, year: number, month: number) =>
     ['families', familyId, 'recaps', 'monthly', year, month] as const,
 };

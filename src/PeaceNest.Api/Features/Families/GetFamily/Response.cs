@@ -6,6 +6,7 @@ public sealed record Response(
     Guid Id,
     string Name,
     string? Description,
+    string PreferredCurrency,
     FamilyMemberRole CurrentUserRole,
     int MemberCount,
     DateTimeOffset CreatedAt);

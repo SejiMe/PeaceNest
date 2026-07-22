@@ -3,6 +3,11 @@ erDiagram
     FAMILIES ||--o{ FAMILY_MEMBERS : has
     FAMILIES ||--o{ FAMILY_INVITATIONS : sends
     USERS ||--o{ FAMILY_INVITATIONS : creates
+    FAMILIES ||--o{ FAMILY_JOIN_CODES : rotates
+    FAMILY_JOIN_CODES ||--o{ FAMILY_JOIN_REQUESTS : produces
+    USERS ||--o{ FAMILY_JOIN_REQUESTS : requests
+    FAMILIES ||--o{ FAMILY_RECOVERY_CODES : recovers
+    USERS ||--o{ FAMILY_RECOVERY_CODES : owns
 
     FAMILIES ||--o{ PLAN_CATEGORIES : owns
     FAMILIES ||--o{ FAMILY_PLANS : owns
@@ -37,6 +42,7 @@ erDiagram
 
     FAMILIES ||--o{ NOTIFICATIONS : owns
     USERS ||--o{ NOTIFICATIONS : receives
+    FAMILY_JOIN_REQUESTS ||--o{ NOTIFICATIONS : relates_to
     FAMILY_PLANS ||--o{ NOTIFICATIONS : relates_to
 
     FAMILIES ||--o{ ACTIVITY_LOGS : records

@@ -783,6 +783,9 @@ PeaceNest will use Supabase Postgres with EF Core Code First.
 - Families
 - FamilyMembers
 - FamilyInvitations
+- FamilyJoinCodes
+- FamilyJoinRequests
+- FamilyRecoveryCodes
 - WantsAndNeeds
 - FamilyMilestones
 - GoalSteps
@@ -804,6 +807,9 @@ PeaceNest will use Supabase Postgres with EF Core Code First.
 - Join family
 - Remove member
 - Manage roles
+- Leave family with owner guardrails
+- Recover a sole-creator workspace within 30 days
+- Permanently purge expired inactive family workspaces
 
 ### Wants & Needs
 

@@ -8,6 +8,7 @@ public sealed record FamilyWorkspaceResponse(
     Guid Id,
     string Name,
     string? Description,
+    string PreferredCurrency,
     FamilyMemberRole CurrentUserRole,
     int MemberCount,
     DateTimeOffset CreatedAt);

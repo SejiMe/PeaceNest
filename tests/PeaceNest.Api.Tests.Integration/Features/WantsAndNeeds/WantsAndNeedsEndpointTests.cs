@@ -15,6 +15,8 @@ using GetWantOrNeedResponse = PeaceNest.Api.Features.WantsAndNeeds.GetWantOrNeed
 using ListWantsAndNeedsResponse = PeaceNest.Api.Features.WantsAndNeeds.ListWantsAndNeeds.Response;
 using UpdatePlanProgressRequest = PeaceNest.Api.Features.FamilyPlans.UpdatePlanProgress.Request;
 using UpdatePlanProgressResponse = PeaceNest.Api.Features.FamilyPlans.UpdatePlanProgress.Response;
+using UpdateWantOrNeedRequest = PeaceNest.Api.Features.WantsAndNeeds.UpdateWantOrNeed.Request;
+using UpdateWantOrNeedResponse = PeaceNest.Api.Features.WantsAndNeeds.UpdateWantOrNeed.Response;
 using CompletePlanResponse = PeaceNest.Api.Features.FamilyPlans.CompletePlan.Response;
 using ArchivePlanResponse = PeaceNest.Api.Features.FamilyPlans.ArchivePlan.Response;
 
@@ -306,6 +308,84 @@ public sealed class WantsAndNeedsEndpointTests
             response,
             403,
             ErrorCodes.AuthorizationDenied);
+    }
+
+    [Fact]
+    public async Task UpdateWantOrNeed_EditsActivePlanAndRejectsCompletedPlan()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "33333333-3333-3333-3333-333333333333",
+            "parent@example.test");
+        var family = await CreateFamilyAsync(client, "Editable Nest");
+        var created = await CreateWantOrNeedAsync(
+            client,
+            family.Id,
+            NewCreateRequest("Old refrigerator", WantNeedKind.Need));
+        var request = new UpdateWantOrNeedRequest(
+            WantNeedKind.Need,
+            "Energy-efficient refrigerator",
+            "Updated together.",
+            PriorityRank: 1,
+            EstimatedCostAmount: 45000m,
+            EstimatedCostCurrency: "php",
+            ScoreLevel.High,
+            ScoreLevel.High,
+            ScoreLevel.Medium,
+            DesiredByDate: null,
+            TargetDate: null,
+            created.WantOrNeed.Version);
+
+        using var updateResponse = await client.PutAsJsonAsync(
+            $"/families/{family.Id}/wants-needs/{created.WantOrNeed.Id}",
+            request);
+        var updated = await updateResponse.Content.ReadFromJsonAsync<UpdateWantOrNeedResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        Assert.NotNull(updated);
+        Assert.Equal("Energy-efficient refrigerator", updated.WantOrNeed.Title);
+        Assert.Equal("PHP", updated.WantOrNeed.EstimatedCostCurrency);
+        Assert.True(updated.WantOrNeed.Version > created.WantOrNeed.Version);
+
+        using var completeResponse = await client.PutAsync(
+            $"/families/{family.Id}/plans/{created.WantOrNeed.Id}/complete",
+            null);
+        Assert.Equal(HttpStatusCode.OK, completeResponse.StatusCode);
+
+        using var readOnlyResponse = await client.PutAsJsonAsync(
+            $"/families/{family.Id}/wants-needs/{created.WantOrNeed.Id}",
+            request with { Version = updated.WantOrNeed.Version });
+
+        Assert.Equal((HttpStatusCode)422, readOnlyResponse.StatusCode);
+        await ProblemDetailsAssert.HasProblemDetailsAsync(readOnlyResponse, 422, ErrorCodes.DomainRuleViolated);
+    }
+
+    [Fact]
+    public async Task ChangePreferredCurrency_DoesNotRelabelExistingEstimate()
+    {
+        using var factory = TestingApiFactory.WithIsolatedDatabase();
+        using var client = CreateAuthenticatedClient(
+            factory,
+            "44444444-4444-4444-4444-444444444444",
+            "owner@example.test");
+        var family = await CreateFamilyAsync(client, "Currency Nest");
+        var created = await CreateWantOrNeedAsync(
+            client,
+            family.Id,
+            NewCreateRequest("Family laptop", WantNeedKind.Need));
+
+        using var currencyResponse = await client.PutAsJsonAsync(
+            $"/families/{family.Id}/preferences/currency",
+            new { PreferredCurrency = "SGD" });
+        Assert.Equal(HttpStatusCode.OK, currencyResponse.StatusCode);
+
+        using var planResponse = await client.GetAsync(
+            $"/families/{family.Id}/wants-needs/{created.WantOrNeed.Id}");
+        var plan = await planResponse.Content.ReadFromJsonAsync<GetWantOrNeedResponse>();
+
+        Assert.NotNull(plan);
+        Assert.Equal("USD", plan.WantOrNeed.EstimatedCostCurrency);
     }
 
     private static CreateWantOrNeedRequest NewCreateRequest(

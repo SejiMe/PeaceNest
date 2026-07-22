@@ -6,6 +6,31 @@ namespace PeaceNest.Api.Tests.Unit.Common.Auth;
 public sealed class FamilyRolePermissionsTests
 {
     [Theory]
+    [InlineData(FamilyMemberRole.Owner, FamilyMemberRole.ParentAdmin, true)]
+    [InlineData(FamilyMemberRole.ParentAdmin, FamilyMemberRole.ParentAdmin, false)]
+    [InlineData(FamilyMemberRole.Owner, FamilyMemberRole.Owner, false)]
+    [InlineData(FamilyMemberRole.ParentAdmin, FamilyMemberRole.AdultMember, true)]
+    [InlineData(FamilyMemberRole.AdultMember, FamilyMemberRole.Viewer, false)]
+    public void CanAssignRoleFromJoinRequest_EnforcesPrivilegeBoundary(
+        FamilyMemberRole reviewerRole,
+        FamilyMemberRole assignedRole,
+        bool expected)
+    {
+        Assert.Equal(expected, FamilyRolePermissions.CanAssignRoleFromJoinRequest(reviewerRole, assignedRole));
+    }
+
+    [Theory]
+    [InlineData(FamilyMemberRole.Owner, true)]
+    [InlineData(FamilyMemberRole.ParentAdmin, true)]
+    [InlineData(FamilyMemberRole.AdultMember, false)]
+    [InlineData(FamilyMemberRole.ChildMember, false)]
+    [InlineData(FamilyMemberRole.Viewer, false)]
+    public void CanManageFamilySettings_OnlyOwnerAndParentAdminCanChangePreferences(FamilyMemberRole role, bool expected)
+    {
+        Assert.Equal(expected, FamilyRolePermissions.CanManageFamilySettings(role));
+    }
+
+    [Theory]
     [InlineData(FamilyMemberRole.Owner, true)]
     [InlineData(FamilyMemberRole.ParentAdmin, true)]
     [InlineData(FamilyMemberRole.AdultMember, true)]

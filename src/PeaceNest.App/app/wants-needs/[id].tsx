@@ -13,7 +13,7 @@ import { PlanVotingSection } from '@/components/plan-voting-section';
 import { useFamilyPlanActions } from '@/hooks/use-family-plan-actions';
 import { usePrimaryFamily } from '@/hooks/use-primary-family';
 import { useWantOrNeed } from '@/hooks/use-wants-and-needs';
-import { kindLabel, planStatusLabel, PlanStatus, scoreLabel, WantNeedKind, type WantOrNeedResponse } from '@/lib/api/contracts';
+import { canUpdateFamilyPlans, formatEstimatedCost, kindLabel, planStatusLabel, PlanStatus, scoreLabel, WantNeedKind, type WantOrNeedResponse } from '@/lib/api/contracts';
 import { useAuth } from '@/lib/auth/auth-provider';
 
 export default function WantNeedDetailRoute() {
@@ -103,7 +103,7 @@ export default function WantNeedDetailRoute() {
           <Badge label={planStatusLabel(plan.status)} tone={plan.status === PlanStatus.Completed ? 'sage' : 'muted'} />
           {plan.estimatedCostAmount ? (
             <Badge
-              label={`${plan.estimatedCostCurrency ?? 'USD'} ${Number(plan.estimatedCostAmount).toLocaleString()}`}
+              label={formatEstimatedCost(Number(plan.estimatedCostAmount), plan.estimatedCostCurrency)}
               tone="muted"
             />
           ) : null}
@@ -121,6 +121,14 @@ export default function WantNeedDetailRoute() {
           </View>
         </View>
       </Card>
+
+      {plan.status === PlanStatus.Active && canUpdateFamilyPlans(primaryFamily.role) ? (
+        <Button
+          label="Edit plan"
+          onPress={() => router.push({ pathname: '/wants-needs/[id]/edit', params: { id: plan.id } })}
+          variant="secondary"
+        />
+      ) : null}
 
       <WantOrNeedActions familyId={primaryFamily.familyId} plan={plan} />
 

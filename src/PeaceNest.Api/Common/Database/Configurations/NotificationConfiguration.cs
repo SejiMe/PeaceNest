@@ -22,6 +22,7 @@ public sealed class NotificationConfiguration : IEntityTypeConfiguration<Notific
         builder.Property(notification => notification.RelatedPlanId).HasColumnName("related_plan_id");
         builder.Property(notification => notification.RelatedCommentId).HasColumnName("related_comment_id");
         builder.Property(notification => notification.RelatedRecapId).HasColumnName("related_recap_id");
+        builder.Property(notification => notification.RelatedJoinRequestId).HasColumnName("related_join_request_id");
         builder.Property(notification => notification.ReadAt).HasColumnName("read_at");
         builder.Property(notification => notification.CreatedAt).HasColumnName("created_at");
         builder.Property(notification => notification.DeletedAt).HasColumnName("deleted_at");
@@ -56,6 +57,11 @@ public sealed class NotificationConfiguration : IEntityTypeConfiguration<Notific
             .HasForeignKey(notification => notification.RelatedRecapId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(notification => notification.RelatedJoinRequest)
+            .WithMany(request => request.Notifications)
+            .HasForeignKey(notification => notification.RelatedJoinRequestId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(notification => new { notification.RecipientUserId, notification.ReadAt, notification.CreatedAt })
             .HasFilter("deleted_at IS NULL")
             .HasDatabaseName("ix_notifications_active_recipient_read_created");
@@ -75,5 +81,8 @@ public sealed class NotificationConfiguration : IEntityTypeConfiguration<Notific
 
         builder.HasIndex(notification => notification.RelatedRecapId)
             .HasDatabaseName("ix_notifications_related_recap_id");
+
+        builder.HasIndex(notification => notification.RelatedJoinRequestId)
+            .HasDatabaseName("ix_notifications_related_join_request_id");
     }
 }

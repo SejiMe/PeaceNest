@@ -20,26 +20,31 @@ public sealed class TestingApiFactory : WebApplicationFactory<Program>
     public const string Audience = "authenticated";
 
     private readonly IReadOnlyDictionary<string, string?> _configuration;
+    private readonly Action<IServiceCollection>? _serviceOverrides;
 
     public TestingApiFactory()
     {
         _configuration = new Dictionary<string, string?>();
     }
 
-    private TestingApiFactory(IReadOnlyDictionary<string, string?> configuration)
+    private TestingApiFactory(
+        IReadOnlyDictionary<string, string?> configuration,
+        Action<IServiceCollection>? serviceOverrides = null)
     {
         _configuration = configuration;
+        _serviceOverrides = serviceOverrides;
     }
 
     public static TestingApiFactory WithConfiguration(IReadOnlyDictionary<string, string?> configuration) =>
         new(configuration);
 
-    public static TestingApiFactory WithIsolatedDatabase() =>
+    public static TestingApiFactory WithIsolatedDatabase(
+        Action<IServiceCollection>? serviceOverrides = null) =>
         new(new Dictionary<string, string?>
         {
             ["Testing:UseInMemoryDatabase"] = "true",
             ["Testing:DatabaseName"] = $"peacenest-tests-{Guid.NewGuid():N}"
-        });
+        }, serviceOverrides);
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -53,7 +58,8 @@ public sealed class TestingApiFactory : WebApplicationFactory<Program>
             var configuration = new Dictionary<string, string?>
             {
                 ["Authentication:Supabase:Audience"] = Audience,
-                ["Authentication:Supabase:TestingSigningKey"] = SigningKey
+                ["Authentication:Supabase:TestingSigningKey"] = SigningKey,
+                ["FamilyRecovery:WorkerEnabled"] = "false"
             };
 
             foreach (var item in _configuration)
@@ -100,6 +106,8 @@ public sealed class TestingApiFactory : WebApplicationFactory<Program>
                     RoleClaimType = "role"
                 };
             });
+
+            _serviceOverrides?.Invoke(services);
         });
     }
 }

@@ -16,6 +16,7 @@ public sealed class CoreIdentityFamilyModelTests
         Assert.Equal("families", EntityType<Family>(dbContext).GetTableName());
         Assert.Equal("family_members", EntityType<FamilyMember>(dbContext).GetTableName());
         Assert.Equal("family_invitations", EntityType<FamilyInvitation>(dbContext).GetTableName());
+        Assert.Equal("family_recovery_codes", EntityType<FamilyRecoveryCode>(dbContext).GetTableName());
     }
 
     [Fact]
@@ -65,6 +66,11 @@ public sealed class CoreIdentityFamilyModelTests
         AssertUniqueIndex(userEntity, nameof(User.SupabaseUserId), "ux_users_supabase_user_id");
         AssertUniqueIndex(userEntity, nameof(User.Email), "ux_users_active_email", "deleted_at IS NULL");
         AssertUniqueIndex(invitationEntity, nameof(FamilyInvitation.TokenHash), "ux_family_invitations_token_hash");
+        AssertUniqueIndex(
+            invitationEntity,
+            nameof(FamilyInvitation.InvitationCodeHash),
+            "ux_family_invitations_invitation_code_hash",
+            "invitation_code_hash IS NOT NULL");
 
         var memberIndex = memberEntity.GetIndexes().Single(index =>
             HasProperties(index, nameof(FamilyMember.FamilyId), nameof(FamilyMember.UserId)));
@@ -97,6 +103,28 @@ public sealed class CoreIdentityFamilyModelTests
         Assert.Equal("status = 'pending'::family_invitation_status", pendingEmailIndex.GetFilter());
         Assert.Null(invitationEntity.FindProperty("Token"));
         Assert.NotNull(invitationEntity.FindProperty(nameof(FamilyInvitation.TokenHash)));
+    }
+
+    [Fact]
+    public void Model_StoresOnlyHashedRecoveryCodesWithOneActiveCodePerFamily()
+    {
+        using var dbContext = CreateDbContext();
+
+        var recoveryEntity = EntityType<FamilyRecoveryCode>(dbContext);
+        Assert.Equal(
+            "family_recovery_code_status",
+            Property<FamilyRecoveryCode>(dbContext, nameof(FamilyRecoveryCode.Status)).GetColumnType());
+        AssertUniqueIndex(
+            recoveryEntity,
+            nameof(FamilyRecoveryCode.CodeHash),
+            "ux_family_recovery_codes_code_hash");
+        AssertUniqueIndex(
+            recoveryEntity,
+            nameof(FamilyRecoveryCode.FamilyId),
+            "ux_family_recovery_codes_active_family_id",
+            "status = 'active'");
+        Assert.Null(recoveryEntity.FindProperty("Code"));
+        Assert.True(Property<FamilyRecoveryCode>(dbContext, nameof(FamilyRecoveryCode.Version)).IsConcurrencyToken);
     }
 
     private static PeaceNestDbContext CreateDbContext()

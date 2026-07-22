@@ -44,7 +44,10 @@ public sealed class CurrentUserService
             Id = Guid.NewGuid(),
             SupabaseUserId = authenticatedUser.SupabaseUserId,
             Email = authenticatedUser.Email,
-            DisplayName = CreateDisplayName(authenticatedUser.Email),
+            DisplayName = authenticatedUser.SuggestedDisplayName ?? CreateDisplayName(authenticatedUser.Email),
+            AvatarUrl = authenticatedUser.AvatarUrl,
+            CountryCode = authenticatedUser.CountryCode,
+            OnboardingCompletedAt = authenticatedUser.CountryCode is null ? null : _timeProvider.GetUtcNow(),
             LastSeenAt = _timeProvider.GetUtcNow()
         };
 
@@ -52,6 +55,14 @@ public sealed class CurrentUserService
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return user;
+    }
+
+    public static void RequireCompletedProfile(User user)
+    {
+        if (user.OnboardingCompletedAt is null)
+        {
+            throw new DomainRuleAppException("Complete your PeaceNest profile before creating or joining a family workspace.");
+        }
     }
 
     private static string CreateDisplayName(string email)

@@ -1,23 +1,39 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
+import { CurrencyPicker } from '@/components/currency-picker';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { useCreateFamilyWorkspace } from '@/hooks/use-family-workspaces';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { suggestedCurrency, type SupportedCurrency } from '@/lib/api/contracts';
+import { useAuth } from '@/lib/auth/auth-provider';
 
 export default function FamilySetupRoute() {
+  const { session } = useAuth();
+  const currentUser = useCurrentUser(Boolean(session));
   const createFamily = useCreateFamilyWorkspace();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [preferredCurrency, setPreferredCurrency] = useState<SupportedCurrency>(
+    suggestedCurrency(currentUser.data?.user.countryCode),
+  );
+
+  useEffect(() => {
+    if (currentUser.data?.user.countryCode) {
+      setPreferredCurrency(suggestedCurrency(currentUser.data.user.countryCode));
+    }
+  }, [currentUser.data?.user.countryCode]);
 
   async function handleCreateFamily() {
     try {
       const created = await createFamily.mutateAsync({
         name,
         description: description.trim() ? description : null,
+        preferredCurrency,
       });
 
       router.replace('/tabs/home');
@@ -49,6 +65,12 @@ export default function FamilySetupRoute() {
             placeholder="The Santos Nest"
             value={name}
           />
+        </View>
+
+        <View className="gap-2">
+          <Text className="font-semibold">Preferred currency</Text>
+          <CurrencyPicker onChange={setPreferredCurrency} value={preferredCurrency} />
+          <Text variant="caption">New cost estimates will start in this currency. Existing estimates keep their original currency.</Text>
         </View>
 
         <View className="gap-2">

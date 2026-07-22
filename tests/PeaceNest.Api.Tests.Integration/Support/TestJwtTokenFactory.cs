@@ -11,7 +11,8 @@ public static class TestJwtTokenFactory
         string subject = "123e4567-e89b-12d3-a456-426614174000",
         string email = "parent@example.test",
         string role = "authenticated",
-        string provider = "google")
+        string provider = "google",
+        bool includeCompletedProfile = true)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TestingApiFactory.SigningKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -23,15 +24,36 @@ public static class TestJwtTokenFactory
             IssuedAt = DateTime.UtcNow,
             SigningCredentials = credentials,
             Subject = new ClaimsIdentity(
-                [
+                BuildClaims(subject, email, role, provider, includeCompletedProfile))
+        };
+
+        return new JsonWebTokenHandler().CreateToken(descriptor);
+    }
+
+    private static IReadOnlyCollection<Claim> BuildClaims(
+        string subject,
+        string email,
+        string role,
+        string provider,
+        bool includeCompletedProfile)
+    {
+        var claims = new List<Claim>
+        {
                     new Claim("sub", subject),
                     new Claim("email", email),
                     new Claim("role", role),
                     new Claim("app_metadata", $$"""{"provider":"{{provider}}","providers":["{{provider}}"]}""", JsonClaimValueTypes.Json),
                     new Claim("session_id", Guid.NewGuid().ToString())
-                ])
         };
 
-        return new JsonWebTokenHandler().CreateToken(descriptor);
+        if (includeCompletedProfile)
+        {
+            claims.Add(new Claim(
+                "user_metadata",
+                $$"""{"full_name":"{{email.Split('@')[0]}}","country_code":"PH"}""",
+                JsonClaimValueTypes.Json));
+        }
+
+        return claims;
     }
 }

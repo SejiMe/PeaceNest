@@ -14,6 +14,7 @@ import { useFamilyPlanActions } from '@/hooks/use-family-plan-actions';
 import { useMilestone, useUpdateMilestoneStepCompletion } from '@/hooks/use-milestones';
 import { usePrimaryFamily } from '@/hooks/use-primary-family';
 import {
+  canUpdateFamilyPlans,
   milestoneProgress,
   planStatusLabel,
   PlanStatus,
@@ -127,6 +128,14 @@ export default function MilestoneDetailRoute() {
           </View>
         </View>
       </Card>
+
+      {plan.status === PlanStatus.Active && canUpdateFamilyPlans(primaryFamily.role) ? (
+        <Button
+          label="Edit milestone"
+          onPress={() => router.push({ pathname: '/milestones/[id]/edit', params: { id: plan.id } })}
+          variant="secondary"
+        />
+      ) : null}
 
       <MilestoneActions familyId={primaryFamily.familyId} milestone={plan} />
 

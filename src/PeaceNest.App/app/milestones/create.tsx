@@ -2,6 +2,7 @@ import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, Switch, View } from 'react-native';
 import { Badge } from '@/components/ui/badge';
+import { DateField } from '@/components/date-field';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,7 +52,7 @@ function CreateMilestoneForm({ familyId, familyName }: { familyId: string; famil
   const createMilestone = useCreateMilestone(familyId);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [targetDate, setTargetDate] = useState('');
+  const [targetDate, setTargetDate] = useState<string | null>(null);
   const [milestoneType, setMilestoneType] = useState('');
   const [progress, setProgress] = useState('0');
   const [includeInRecap, setIncludeInRecap] = useState(true);
@@ -68,20 +69,13 @@ function CreateMilestoneForm({ familyId, familyName }: { familyId: string; famil
       return;
     }
 
-    const normalizedTargetDate = targetDate.trim();
-
-    if (normalizedTargetDate && !/^\d{4}-\d{2}-\d{2}$/.test(normalizedTargetDate)) {
-      Alert.alert('Check the date', 'Use YYYY-MM-DD for the target date.');
-      return;
-    }
-
     try {
       await createMilestone.mutateAsync({
         title,
         description: description.trim() ? description : null,
         priorityRank: null,
         progressPercent: Math.max(0, Math.min(100, Math.round(parsedProgress))),
-        targetDate: normalizedTargetDate || null,
+        targetDate,
         milestoneType: milestoneType.trim() ? milestoneType : null,
         celebrationNotes: null,
         reflectionPrompt: null,
@@ -151,7 +145,7 @@ function CreateMilestoneForm({ familyId, familyName }: { familyId: string; famil
         <View className="flex-row gap-3">
           <View className="flex-1 gap-2">
             <Text className="font-semibold">Target date</Text>
-            <Input onChangeText={setTargetDate} placeholder="2026-12-31" value={targetDate} />
+            <DateField onChange={setTargetDate} value={targetDate} />
           </View>
           <View className="flex-1 gap-2">
             <Text className="font-semibold">Progress</Text>

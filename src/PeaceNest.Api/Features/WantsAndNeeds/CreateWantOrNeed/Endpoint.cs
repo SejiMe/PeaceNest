@@ -1,9 +1,11 @@
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using PeaceNest.Api.Common.Auth;
 using PeaceNest.Api.Common.Database;
 using PeaceNest.Api.Common.Database.Entities;
 using PeaceNest.Api.Common.Errors;
+using PeaceNest.Api.Common.Localization;
 using PeaceNest.Api.Common.RateLimiting;
 
 namespace PeaceNest.Api.Features.WantsAndNeeds.CreateWantOrNeed;
@@ -56,7 +58,14 @@ public sealed class Endpoint : Endpoint<Request, Response>
 
         var title = request.Title.Trim();
         var description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
-        var currency = NormalizeCurrency(request.EstimatedCostCurrency);
+        var currency = request.EstimatedCostAmount is null
+            ? null
+            : string.IsNullOrWhiteSpace(request.EstimatedCostCurrency)
+                ? await _dbContext.Families
+                    .Where(family => family.Id == familyId)
+                    .Select(family => family.PreferredCurrency)
+                    .SingleAsync(ct)
+                : FamilyCurrencies.Normalize(request.EstimatedCostCurrency);
         var priorityScore = WantOrNeedPriorityScore.Calculate(
             request.Kind,
             request.UrgencyLevel,
@@ -138,9 +147,9 @@ public sealed class Endpoint : Endpoint<Request, Response>
         }
 
         if (!string.IsNullOrWhiteSpace(request.EstimatedCostCurrency) &&
-            request.EstimatedCostCurrency.Trim().Length != 3)
+            !FamilyCurrencies.IsSupported(request.EstimatedCostCurrency))
         {
-            failures.Add(new ValidationFailure("estimatedCostCurrency", "Estimated cost currency must be a three-letter code."));
+            failures.Add(new ValidationFailure("estimatedCostCurrency", "Select PHP, SGD, or USD for the estimate."));
         }
 
         if (!Enum.IsDefined(request.UrgencyLevel))
@@ -164,6 +173,4 @@ public sealed class Endpoint : Endpoint<Request, Response>
         }
     }
 
-    private static string? NormalizeCurrency(string? currency) =>
-        string.IsNullOrWhiteSpace(currency) ? null : currency.Trim().ToUpperInvariant();
 }

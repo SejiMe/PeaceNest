@@ -37,6 +37,7 @@ public static class MilestoneResponseProjection
             details.ReflectionPrompt,
             details.IncludeInRecap,
             steps,
+            plan.Version,
             plan.CreatedAt,
             plan.UpdatedAt);
     }

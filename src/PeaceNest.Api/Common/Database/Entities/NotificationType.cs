@@ -20,5 +20,14 @@ public enum NotificationType
     MilestoneCompleted = 4,
 
     [PgName("monthly_recap_ready")]
-    MonthlyRecapReady = 5
+    MonthlyRecapReady = 5,
+
+    [PgName("family_join_request_created")]
+    FamilyJoinRequestCreated = 6,
+
+    [PgName("family_join_request_approved")]
+    FamilyJoinRequestApproved = 7,
+
+    [PgName("family_join_request_rejected")]
+    FamilyJoinRequestRejected = 8
 }

@@ -45,6 +45,7 @@ public sealed class Endpoint : EndpointWithoutRequest<Response>
                 member.FamilyId,
                 member.Family.Name,
                 member.Family.Description,
+                member.Family.PreferredCurrency,
                 member.Role,
                 member.Family.Members.Count(innerMember => innerMember.Status == FamilyMemberStatus.Active),
                 member.Family.CreatedAt))

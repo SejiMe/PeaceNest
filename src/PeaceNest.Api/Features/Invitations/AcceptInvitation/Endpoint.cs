@@ -54,12 +54,22 @@ public sealed class Endpoint : Endpoint<Request, Response>
 
         var authenticatedUser = AuthenticatedSupabaseUserFactory.FromClaimsPrincipal(User);
         var user = await _currentUserService.GetOrCreateUserAsync(authenticatedUser, ct);
-        var tokenHash = _invitationTokenService.HashToken(request.InvitationToken.Trim());
+        CurrentUserService.RequireCompletedProfile(user);
+        var tokenHash = string.IsNullOrWhiteSpace(request.InvitationToken)
+            ? null
+            : _invitationTokenService.HashToken(request.InvitationToken.Trim());
+        var codeHash = string.IsNullOrWhiteSpace(request.InvitationCode)
+            ? null
+            : _invitationTokenService.HashCode(request.InvitationCode);
         var now = _timeProvider.GetUtcNow();
 
         var invitation = await _dbContext.FamilyInvitations
             .Include(invitation => invitation.Family)
-            .SingleOrDefaultAsync(invitation => invitation.TokenHash == tokenHash, ct);
+            .SingleOrDefaultAsync(
+                invitation =>
+                    (tokenHash != null && invitation.TokenHash == tokenHash) ||
+                    (codeHash != null && invitation.InvitationCodeHash == codeHash),
+                ct);
 
         if (invitation is null)
         {
@@ -129,11 +139,14 @@ public sealed class Endpoint : Endpoint<Request, Response>
 
     private static void ValidateRequest(Request request)
     {
-        if (string.IsNullOrWhiteSpace(request.InvitationToken))
+        var hasToken = !string.IsNullOrWhiteSpace(request.InvitationToken);
+        var hasCode = !string.IsNullOrWhiteSpace(request.InvitationCode);
+
+        if (hasToken == hasCode)
         {
             throw new ValidationAppException(
                 "Family invitation request is invalid.",
-                [new ValidationFailure("invitationToken", "Invitation token is required.")]);
+                [new ValidationFailure("invitation", "Provide either an invitation link token or invitation code.")]);
         }
     }
 }

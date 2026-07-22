@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api/client';
-import type { GetMeResponse } from '@/lib/api/contracts';
+import type { CompleteProfileRequest, CompleteProfileResponse, GetMeResponse } from '@/lib/api/contracts';
 import { queryKeys } from '@/lib/api/query-keys';
 
 export function useCurrentUser(enabled: boolean) {
@@ -9,5 +9,18 @@ export function useCurrentUser(enabled: boolean) {
     queryFn: () => apiFetch<GetMeResponse>('/auth/me'),
     enabled,
     staleTime: 60_000,
+  });
+}
+
+export function useCompleteProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (request: CompleteProfileRequest) =>
+      apiFetch<CompleteProfileResponse>('/auth/profile', {
+        method: 'PUT',
+        body: request,
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.authMe }),
   });
 }

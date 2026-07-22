@@ -25,11 +25,11 @@ export async function apiFetch<TResponse>(
     headers.set('Authorization', `Bearer ${session.access_token}`);
   }
 
-  const response = await fetch(`${appEnv.apiBaseUrl}${path}`, {
-    ...options,
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+  if (__DEV__ && appEnv.apiBaseUrl.includes('.devtunnels.ms')) {
+    headers.set('X-Tunnel-Skip-AntiPhishing-Page', 'true');
+  }
+
+  const response = await fetchApi(path, options, headers);
 
   if (!response.ok) {
     throw await createApiError(response);
@@ -40,6 +40,25 @@ export async function apiFetch<TResponse>(
   }
 
   return (await response.json()) as TResponse;
+}
+
+async function fetchApi(path: string, options: ApiFetchOptions, headers: Headers) {
+  try {
+    return await fetch(`${appEnv.apiBaseUrl}${path}`, {
+      ...options,
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    throw new ApiError(
+      0,
+      `PeaceNest could not reach the API at ${appEnv.apiBaseUrl}. Make sure the backend is running, then try again.`,
+    );
+  }
 }
 
 async function createApiError(response: Response) {

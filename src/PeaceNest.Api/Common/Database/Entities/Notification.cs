@@ -36,6 +36,10 @@ public sealed class Notification : IUsesVersion7Guid, ISoftDeletableEntity
 
     public Recap? RelatedRecap { get; set; }
 
+    public Guid? RelatedJoinRequestId { get; set; }
+
+    public FamilyJoinRequest? RelatedJoinRequest { get; set; }
+
     public DateTimeOffset? ReadAt { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }

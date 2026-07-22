@@ -15,6 +15,10 @@ public sealed class FamilyConfiguration : IEntityTypeConfiguration<Family>
         builder.Property(family => family.Id).HasColumnName("id");
         builder.Property(family => family.Name).HasColumnName("name").HasMaxLength(120);
         builder.Property(family => family.Description).HasColumnName("description").HasMaxLength(500);
+        builder.Property(family => family.PreferredCurrency)
+            .HasColumnName("preferred_currency")
+            .HasColumnType("char(3)")
+            .HasMaxLength(3);
         builder.Property(family => family.CreatedByUserId).HasColumnName("created_by_user_id");
         builder.Property(family => family.CreatedAt).HasColumnName("created_at");
         builder.Property(family => family.UpdatedAt).HasColumnName("updated_at");

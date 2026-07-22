@@ -4,6 +4,7 @@ using PeaceNest.Api.Common.Auth;
 using PeaceNest.Api.Common.Database;
 using PeaceNest.Api.Common.Database.Entities;
 using PeaceNest.Api.Common.Errors;
+using PeaceNest.Api.Common.Localization;
 
 namespace PeaceNest.Api.Features.Families.CreateFamily;
 
@@ -44,6 +45,7 @@ public sealed class Endpoint : Endpoint<Request, Response>
 
         var authenticatedUser = AuthenticatedSupabaseUserFactory.FromClaimsPrincipal(User);
         var user = await _currentUserService.GetOrCreateUserAsync(authenticatedUser, ct);
+        CurrentUserService.RequireCompletedProfile(user);
         var now = _timeProvider.GetUtcNow();
 
         var family = new Family
@@ -51,6 +53,7 @@ public sealed class Endpoint : Endpoint<Request, Response>
             Id = Guid.NewGuid(),
             Name = request.Name.Trim(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+            PreferredCurrency = FamilyCurrencies.Normalize(request.PreferredCurrency),
             CreatedByUserId = user.Id
         };
 
@@ -75,6 +78,7 @@ public sealed class Endpoint : Endpoint<Request, Response>
                 family.Id,
                 family.Name,
                 family.Description,
+                family.PreferredCurrency,
                 membership.Role,
                 1,
                 family.CreatedAt),
@@ -97,6 +101,11 @@ public sealed class Endpoint : Endpoint<Request, Response>
         if (request.Description?.Trim().Length > 500)
         {
             failures.Add(new ValidationFailure("description", "Family workspace description must be 500 characters or fewer."));
+        }
+
+        if (!FamilyCurrencies.IsSupported(request.PreferredCurrency))
+        {
+            failures.Add(new ValidationFailure("preferredCurrency", "Select PHP, SGD, or USD for this family workspace."));
         }
 
         if (failures.Count > 0)
